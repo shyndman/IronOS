@@ -25,7 +25,9 @@ bool sanitiseSettings();
 #else
 #define QC_VOLTAGE_MAX 140
 #endif /* POW_QC_20V */
-
+#ifndef QC_IDEAL_VOLTAGE
+#define QC_IDEAL_VOLTAGE 90
+#endif
 /*
  * This struct must be a multiple of 2 bytes as it is saved / restored from
  * flash in uint16_t chunks
@@ -60,7 +62,7 @@ static const SettingConstants settingsConstants[(int)SettingsOptions::SettingsOp
     {                     0,                                                                    15,                 1,                   SLEEP_TIME}, // SleepTime
     {                     0,                                                                     4,                 1,              CUT_OUT_SETTING}, // MinDCVoltageCells
     {                    24,                                                                    38,                 1,               RECOM_VOL_CELL}, // MinVoltageCells
-    {                    90,                                                        QC_VOLTAGE_MAX,                 2,                           90}, // QCIdealVoltage
+    {                    90,                                                        QC_VOLTAGE_MAX,                 2,             QC_IDEAL_VOLTAGE}, // QCIdealVoltage
     {                     0,                                                  MAX_ORIENTATION_MODE,                 1,             ORIENTATION_MODE}, // OrientationMode
     {                     0,                                                                     9,                 1,                  SENSITIVITY}, // Sensitivity
     {                     0,                                                                     1,                 1,               ANIMATION_LOOP}, // AnimationLoop
@@ -90,7 +92,7 @@ static const SettingConstants settingsConstants[(int)SettingsOptions::SettingsOp
     {                     0,                                                                    50,                 1,                           20}, // PDNegTimeout
     {                     0,                                                                     1,                 1,                            0}, // DisplayInversion
     {        MIN_BRIGHTNESS,                                                        MAX_BRIGHTNESS,   BRIGHTNESS_STEP,           DEFAULT_BRIGHTNESS}, // DisplayBrightness
-    {                     0,                                                                     6,                 1,                            1}, // LOGOTime
+    {                     0,                                                                     6,                 1,                            3}, // LOGOTime
     {                     0,                                                                     1,                 1,                            0}, // CalibrateCJC
     {                     0,                                                                     1,                 1,                            0}, // BluetoothLE
     {                     0,                                                                     2,                 1,                            0}, // USBPDMode
@@ -111,6 +113,7 @@ static const SettingConstants settingsConstants[(int)SettingsOptions::SettingsOp
     {                     0,                                                                    12,                 1,                            0}, // HallEffectSleepTime
     {                     0, (tipType_t::TIP_TYPE_MAX - 1) > 0 ? (tipType_t::TIP_TYPE_MAX - 1) : 0,                 1,                            0}, // SolderingTipType
     {                     0,                                                                     1,                 1,                            0}, // ReverseButtonSettings
+    {                     5,                                                                   180,                 5,                           20}, // DisplayIdleTimeoutSeconds
 };
 static_assert((sizeof(settingsConstants) / sizeof(SettingConstants)) == ((int)SettingsOptions::SettingsOptionsLength));
 

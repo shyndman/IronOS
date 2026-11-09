@@ -15,6 +15,11 @@
 #include "configuration.h"
 #include "main.hpp"
 #include "ui_drawing.hpp"
+#ifdef LCD_160x80
+#include "Hs02UiAssets.hpp"
+#include <stdio.h>
+#endif
+
 
 #ifdef POW_DC
 static void displayInputVRange(void);
@@ -43,9 +48,11 @@ static void displaySleepTime(void);
 
 static void setTempF(void);
 static void displayTempF(void);
+#ifndef LCD_160x80
 static void displayAdvancedSolderingScreens(void);
 static void displayAdvancedIDLEScreens(void);
 static void displayScrollSpeed(void);
+#endif
 static void displayReverseButtonTempChangeEnabled(void);
 static void displayReverseButtonSettings(void);
 static void displayPowerLimit(void);
@@ -100,14 +107,21 @@ static void setCalibrateVIN(void);
 static void displayTempChangeShortStep(void);
 static void displayTempChangeLongStep(void);
 static void displayPowerPulse(void);
+#ifndef LCD_160x80
 static bool displayAnimationOptions(void);
 static void displayAnimationSpeed(void);
 static void displayAnimationLoop(void);
+#endif
 static void displayPowerPulseWait(void);
 static bool showPowerPulseOptions(void);
 static void displayPowerPulseDuration(void);
 static void displayBrightnessLevel(void);
+#ifdef LCD_160x80
+static void displayIdleTimeoutSeconds(void);
+#endif
+#ifndef LCD_160x80
 static void displayInvertColor(void);
+#endif
 static void displayLogoTime(void);
 
 #ifdef HALL_SENSOR
@@ -230,8 +244,10 @@ const menuitem rootSettingsMenu[] {
   {0, nullptr, displayUIMenu, nullptr, SettingsOptions::SettingsOptionsLength, SettingsItemIndex::NUM_ITEMS, 0},
   /* Advanced Menu */
   {0, nullptr, displayAdvancedMenu, nullptr, SettingsOptions::SettingsOptionsLength, SettingsItemIndex::NUM_ITEMS, 0},
+#ifndef LCD_160x80
   /* Language Switch */
   {0, settings_setLanguageSwitch, settings_displayLanguageSwitch, settings_showLanguageSwitch, SettingsOptions::SettingsOptionsLength, SettingsItemIndex::NUM_ITEMS, 0},
+#endif
   /* vvvv end of menu marker. DO NOT REMOVE vvvv */
   {0, nullptr, nullptr, nullptr, SettingsOptions::SettingsOptionsLength, SettingsItemIndex::NUM_ITEMS, 0}
   /* ^^^^ end of menu marker. DO NOT REMOVE ^^^^ */
@@ -392,26 +408,38 @@ const menuitem UIMenu[] = {
 #endif /* *not* NO_DISPLAY_ROTATE */
   /* Cooling blink warning */
   {SETTINGS_DESC(SettingsItemIndex::CooldownBlink), nullptr, displayCoolingBlinkEnabled, nullptr, SettingsOptions::CoolingTempBlink, SettingsItemIndex::CooldownBlink, 7},
+#ifndef LCD_160x80
   /* Scroll Speed for descriptions */
   {SETTINGS_DESC(SettingsItemIndex::ScrollingSpeed), nullptr, displayScrollSpeed, nullptr, SettingsOptions::DescriptionScrollSpeed, SettingsItemIndex::ScrollingSpeed, 7},
+#endif
   /* Reverse Temp change buttons +/- */
   {SETTINGS_DESC(SettingsItemIndex::ReverseButtonTempChange), nullptr, displayReverseButtonTempChangeEnabled, nullptr, SettingsOptions::ReverseButtonTempChangeEnabled, SettingsItemIndex::ReverseButtonTempChange, 7},
   /* Reverse Settings menu buttons A/B */
   {SETTINGS_DESC(SettingsItemIndex::ReverseButtonSettings), nullptr, displayReverseButtonSettings, nullptr, SettingsOptions::ReverseButtonSettings, SettingsItemIndex::ReverseButtonSettings, 7},
+#ifndef LCD_160x80
   /* Animation Speed adjustment */
   {SETTINGS_DESC(SettingsItemIndex::AnimSpeed), nullptr, displayAnimationSpeed, nullptr, SettingsOptions::AnimationSpeed, SettingsItemIndex::AnimSpeed, 7},
   /* Animation Loop switch */
   {SETTINGS_DESC(SettingsItemIndex::AnimLoop), nullptr, displayAnimationLoop, displayAnimationOptions, SettingsOptions::AnimationLoop, SettingsItemIndex::AnimLoop, 7},
+#endif
   /* Brightness Level */
   {SETTINGS_DESC(SettingsItemIndex::Brightness), nullptr, displayBrightnessLevel, nullptr, SettingsOptions::DisplayBrightness, SettingsItemIndex::Brightness, 7},
+#ifdef LCD_160x80
+  /* Display idle timeout */
+  {SETTINGS_DESC(SettingsItemIndex::DisplayIdleTimeout), nullptr, displayIdleTimeoutSeconds, nullptr, SettingsOptions::DisplayIdleTimeoutSeconds, SettingsItemIndex::DisplayIdleTimeout, 7},
+#endif
+#ifndef LCD_160x80
   /* Invert screen colour */
   {SETTINGS_DESC(SettingsItemIndex::ColourInversion), nullptr, displayInvertColor, nullptr, SettingsOptions::DisplayInversion, SettingsItemIndex::ColourInversion, 7},
+#endif
   /* Set logo duration */
   {SETTINGS_DESC(SettingsItemIndex::LOGOTime), nullptr, displayLogoTime, nullptr, SettingsOptions::LOGOTime, SettingsItemIndex::LOGOTime, 6},
+#ifndef LCD_160x80
   /* Advanced idle screen */
   {SETTINGS_DESC(SettingsItemIndex::AdvancedIdle), nullptr, displayAdvancedIDLEScreens, nullptr, SettingsOptions::DetailedIDLE, SettingsItemIndex::AdvancedIdle, 7},
   /* Advanced soldering screen */
   {SETTINGS_DESC(SettingsItemIndex::AdvancedSoldering), nullptr, displayAdvancedSolderingScreens, nullptr, SettingsOptions::DetailedSoldering, SettingsItemIndex::AdvancedSoldering, 7},
+#endif
   /* vvvv end of menu marker. DO NOT REMOVE vvvv */
   {0, nullptr, nullptr, nullptr, SettingsOptions::SettingsOptionsLength, SettingsItemIndex::NUM_ITEMS, 0}
   /* ^^^^ end of menu marker. DO NOT REMOVE ^^^^ */
@@ -469,6 +497,10 @@ const menuitem *subSettingsMenus[]{
  * description.
  */
 static void printShortDescription(SettingsItemIndex settingsItemIndex, uint16_t cursorCharPosition) {
+#ifdef LCD_160x80
+  (void)settingsItemIndex;
+  (void)cursorCharPosition;
+#else
   // print short description (default single line, explicit double line)
   uint8_t shortDescIndex = static_cast<uint8_t>(settingsItemIndex);
   Display::printWholeScreen(translatedString(Tr->SettingsShortNames[shortDescIndex]));
@@ -476,16 +508,42 @@ static void printShortDescription(SettingsItemIndex settingsItemIndex, uint16_t 
   // prepare cursor for value
   // make room for scroll indicator
   Display::setCursor(cursorCharPosition * FONT_SMALL_WIDTH - 2, 0);
+#endif
 }
 
 static int userConfirmation(const char *message) {
   TickType_t tickStart = xTaskGetTickCount();
   for (;;) {
+#ifdef LCD_160x80
+    (void)tickStart;
+    Display::setColorMode(true);
+    Display::setColorPalette(Hs02UI::kPaletteMenuAdvanced);
+    Display::clearScreenColor();
+    if (message == translatedString(Tr->SettingsResetWarning)) {
+      Display::drawSpaceGrotesk("Reset all settings?", 11, 7, 15, 0);
+    } else {
+      Display::drawSpaceGrotesk("Tip & handle cold\nbefore reboot?", 11, 5, 15, 0);
+    }
+    Display::drawSpaceGrotesk("OK", 11, 48, 19, 1);
+    Display::drawAaBitmapColor(Hs02UI::kIconResetWrench.data, Hs02UI::kIconResetWrench.width, Hs02UI::kIconResetWrench.height, 39, 49, 1);
+    Display::drawAaBitmapColor(Hs02UI::kIconHoldDots.data, Hs02UI::kIconHoldDots.width, Hs02UI::kIconHoldDots.height, 107, 47, 1);
+    Display::drawSpaceGrotesk("OK", 101, 48, 19, 1);
+    Display::drawAaBitmapColor(Hs02UI::kIconCancelCircle.data, Hs02UI::kIconCancelCircle.width, Hs02UI::kIconCancelCircle.height, 129, 51, 1);
+    ButtonState buttons = getButtonState();
+    const bool  swap    = Display::getRotation() ^ static_cast<bool>(getSettingValue(SettingsOptions::ReverseButtonSettings));
+    if (buttons == BUTTON_OK_SHORT || (!swap && buttons == BUTTON_B_SHORT) || (swap && buttons == BUTTON_F_SHORT)) {
+      return 1;
+    }
+    if (buttons != BUTTON_NONE) {
+      return 0;
+    }
+#else
     drawScrollingText(message, xTaskGetTickCount() - tickStart);
 
     ButtonState buttons = getButtonState();
     switch (buttons) {
     case BUTTON_F_SHORT:
+    case BUTTON_OK_SHORT:
       // User confirmed
       return 1;
 
@@ -493,11 +551,13 @@ static int userConfirmation(const char *message) {
       break;
     default:
     case BUTTON_BOTH:
+    case BUTTON_OK_LONG:
     case BUTTON_B_SHORT:
     case BUTTON_F_LONG:
     case BUTTON_B_LONG:
       return 0;
     }
+#endif
 
     Display::refresh();
     osDelay(40);
@@ -505,23 +565,181 @@ static int userConfirmation(const char *message) {
   return 0;
 }
 
+#ifdef LCD_160x80
+static bool s_hs02TwoLineSetting = false;
+void        hs02SetTwoLineSettingLayout(bool twoLine) { s_hs02TwoLineSetting = twoLine; }
+
+static void drawSettingValueText(const char *str) {
+  Display::drawSpaceGrotesk(str, 34, s_hs02TwoLineSetting ? 48 : 46, 19, 1);
+}
+
+static void drawSettingCheckbox(bool checked) {
+  const Hs02UI::Icon2bpp &icon = checked ? Hs02UI::kIconCheckboxOn : Hs02UI::kIconCheckboxOff;
+  Display::drawAaBitmapColor(icon.data, icon.width, icon.height, 13, s_hs02TwoLineSetting ? 52 : 50, 1);
+  Display::drawSpaceGrotesk(checked ? "On" : "Off", 35, s_hs02TwoLineSetting ? 48 : 46, 19, 1);
+}
+const char *hs02SettingLabel(SettingsItemIndex idx) {
+  switch (idx) {
+  case SettingsItemIndex::DCInCutoff:
+    return "Power source";
+  case SettingsItemIndex::MinVolCell:
+    return "Minimum voltage";
+  case SettingsItemIndex::QCMaxVoltage:
+    return "QC voltage";
+  case SettingsItemIndex::PDNegTimeout:
+    return "PD timeout";
+  case SettingsItemIndex::USBPDMode:
+    return "USB PD mode";
+  case SettingsItemIndex::BoostTemperature:
+    return "Boost temp";
+  case SettingsItemIndex::AutoStart:
+    return "Start-up behavior";
+  case SettingsItemIndex::TempChangeShortStep:
+    return "Temp change\nshort";
+  case SettingsItemIndex::TempChangeLongStep:
+    return "Temp change\nlong";
+  case SettingsItemIndex::LockingMode:
+    return "Allow locking\nbuttons";
+  case SettingsItemIndex::MotionSensitivity:
+    return "Motion sensitivity";
+  case SettingsItemIndex::SleepTemperature:
+    return "Sleep temp";
+  case SettingsItemIndex::SleepTimeout:
+    return "Sleep timeout";
+  case SettingsItemIndex::ShutdownTimeout:
+    return "Shutdown timeout";
+  case SettingsItemIndex::TemperatureUnit:
+    return "Temperature unit";
+  case SettingsItemIndex::DisplayRotation:
+    return "Display orientation";
+  case SettingsItemIndex::CooldownBlink:
+    return "Cooldown flashing";
+  case SettingsItemIndex::ReverseButtonTempChange:
+    return "Swap + " HS02_SYM_MINUS " keys";
+  case SettingsItemIndex::ReverseButtonSettings:
+    return "Swap < > keys";
+  case SettingsItemIndex::Brightness:
+    return "Screen brightness";
+  case SettingsItemIndex::DisplayIdleTimeout:
+    return "Screen timeout";
+  case SettingsItemIndex::LOGOTime:
+    return "Boot logo duration";
+  case SettingsItemIndex::PowerLimit:
+    return "Power limit";
+  case SettingsItemIndex::CalibrateCJC:
+    return "Calibrate CJC\nat next boot";
+  case SettingsItemIndex::VoltageCalibration:
+    return "Calibrate input\nvoltage";
+  case SettingsItemIndex::PowerPulsePower:
+    return "Power pulse";
+  case SettingsItemIndex::PowerPulseWait:
+    return "Power pulse delay";
+  case SettingsItemIndex::PowerPulseDuration:
+    return "Power pulse\nduration";
+  case SettingsItemIndex::SettingsReset:
+    return "Restore default\nsettings";
+  default:
+    return "";
+  }
+}
+
+const char *hs02SettingHelp(SettingsItemIndex idx) {
+  switch (idx) {
+  case SettingsItemIndex::DCInCutoff:
+    return "Set cutoff voltage to prevent battery overdischarge (DC=10V) (S=3.3V per cell, disable PWR limit)";
+  case SettingsItemIndex::MinVolCell:
+    return "Minimum allowed voltage per battery cell (3S: 3 - 3.7V | 4-6S: 2.4 - 3.7V)";
+  case SettingsItemIndex::QCMaxVoltage:
+    return "Max QC voltage the iron should negotiate for";
+  case SettingsItemIndex::BoostTemperature:
+    return "Tip temperature used in \"boost mode\"";
+  case SettingsItemIndex::AutoStart:
+    return "S=heat to soldering temp | Z=standby at sleep temp until moved | R=standby without heating until moved";
+  case SettingsItemIndex::TempChangeShortStep:
+    return "Temperature-change-increment on short button press";
+  case SettingsItemIndex::TempChangeLongStep:
+    return "Temperature-change-increment on long button press";
+  case SettingsItemIndex::LockingMode:
+    return "While soldering, hold down both buttons to toggle locking them (B=boost mode only | F=full locking)";
+  case SettingsItemIndex::MotionSensitivity:
+    return "1=least sensitive | ... | 9=most sensitive";
+  case SettingsItemIndex::SleepTemperature:
+    return "Tip temperature while in \"sleep mode\"";
+  case SettingsItemIndex::SleepTimeout:
+    return "Interval before \"sleep mode\" starts (s=seconds | m=minutes)";
+  case SettingsItemIndex::ShutdownTimeout:
+    return "Interval before the iron shuts down (m=minutes)";
+  case SettingsItemIndex::TemperatureUnit:
+    return "C=" HS02_SYM_DEG "Celsius | F=" HS02_SYM_DEG "Fahrenheit";
+  case SettingsItemIndex::DisplayRotation:
+    return "R=right-handed | L=left-handed | A=automatic";
+  case SettingsItemIndex::CooldownBlink:
+    return "Flash temp reading at idle while tip is hot";
+  case SettingsItemIndex::ReverseButtonTempChange:
+    return "Reverse assignment of buttons for temperature adjustment";
+  case SettingsItemIndex::ReverseButtonSettings:
+    return "Reverse assignment of buttons for Settings menu";
+  case SettingsItemIndex::Brightness:
+    return "Adjust the OLED screen brightness";
+  case SettingsItemIndex::DisplayIdleTimeout:
+    return "Turn off screen and button lights after inactivity (s=seconds)";
+  case SettingsItemIndex::LOGOTime:
+    return "Set boot logo duration (s=seconds)";
+  case SettingsItemIndex::PowerLimit:
+    return "Average maximum power the iron can use (W=watt)";
+  case SettingsItemIndex::CalibrateCJC:
+    return "Calibrate Cold Junction Compensation at next boot (not required if Delta T is < 5" HS02_SYM_DEG "C)";
+  case SettingsItemIndex::VoltageCalibration:
+    return "Start VIN calibration (long press to exit)";
+  case SettingsItemIndex::PowerPulsePower:
+    return "Intensity of power of keep-awake-pulse (W=watt)";
+  case SettingsItemIndex::PowerPulseWait:
+    return "Delay before keep-awake-pulse is triggered (x 2.5s)";
+  case SettingsItemIndex::PowerPulseDuration:
+    return "Keep-awake-pulse duration (x 250ms)";
+  case SettingsItemIndex::SettingsReset:
+    return "Reset all settings to default";
+  default:
+    return "";
+  }
+}
+#endif
+
 #ifdef POW_DC
 
 static void displayInputVRange(void) {
+#ifdef LCD_160x80
+  const uint16_t cells = getSettingValue(SettingsOptions::MinDCVoltageCells);
+  if (cells) {
+    char buf[16];
+    snprintf(buf, sizeof(buf), "%u cells", static_cast<unsigned>(2 + cells));
+    drawSettingValueText(buf);
+  } else {
+    drawSettingValueText("DC");
+  }
+#else
   if (getSettingValue(SettingsOptions::MinDCVoltageCells)) {
     Display::printNumber(2 + getSettingValue(SettingsOptions::MinDCVoltageCells), 1, FontStyle::LARGE);
     Display::print(LargeSymbolCellCount, FontStyle::LARGE);
   } else {
     Display::print(LargeSymbolDC, FontStyle::LARGE);
   }
+#endif
 }
 
 static bool showInputVOptions(void) { return getSettingValue(SettingsOptions::MinDCVoltageCells) > 0; }
 
 static void displayInputMinVRange(void) {
+#ifdef LCD_160x80
+  const uint16_t v = getSettingValue(SettingsOptions::MinVoltageCells);
+  char           buf[16];
+  snprintf(buf, sizeof(buf), "%u.%u V", static_cast<unsigned>(v / 10), static_cast<unsigned>(v % 10));
+  drawSettingValueText(buf);
+#else
   Display::printNumber(getSettingValue(SettingsOptions::MinVoltageCells) / 10, 1, FontStyle::LARGE);
   Display::print(LargeSymbolDot, FontStyle::LARGE);
   Display::printNumber(getSettingValue(SettingsOptions::MinVoltageCells) % 10, 1, FontStyle::LARGE);
+#endif
 }
 
 #endif /* POW_DC */
@@ -532,9 +750,15 @@ static void displayQCInputV(void) {
   // These are only used in QC modes
   // Allows setting the voltage negotiated for QC
   auto voltage = getSettingValue(SettingsOptions::QCIdealVoltage);
+#ifdef LCD_160x80
+  char buf[16];
+  snprintf(buf, sizeof(buf), "%u.%u V", static_cast<unsigned>(voltage / 10), static_cast<unsigned>(voltage % 10));
+  drawSettingValueText(buf);
+#else
   Display::printNumber(voltage / 10, 2, FontStyle::LARGE);
   Display::print(LargeSymbolDot, FontStyle::LARGE);
   Display::printNumber(voltage % 10, 1, FontStyle::LARGE);
+#endif
 }
 
 #endif /* POW_QC */
@@ -543,9 +767,18 @@ static void displayQCInputV(void) {
 
 static void displayPDNegTimeout(void) {
   auto value = getSettingValue(SettingsOptions::PDNegTimeout);
+#ifdef LCD_160x80
+  if (value == 0) {
+    drawSettingValueText("Off");
+  } else {
+    char buf[16];
+    snprintf(buf, sizeof(buf), "%u", static_cast<unsigned>(value));
+    drawSettingValueText(buf);
+  }
+#else
   value ? Display::printNumber(value, 2, FontStyle::LARGE) : Display::drawUnavailableIcon();
+#endif
 }
-
 static void displayUSBPDMode(void) {
   /*
    * Supported PD modes:
@@ -595,15 +828,65 @@ static void setBoostTemp(void) {
   setSettingValue(SettingsOptions::BoostTemp, value);
 }
 
+static void setBoostTempPrev(void) {
+  uint16_t value = getSettingValue(SettingsOptions::BoostTemp);
+  if (getSettingValue(SettingsOptions::TemperatureInF)) {
+    if (value == 0) {
+      value = MAX_TEMP_F - 10;
+    } else if (value <= MIN_BOOST_TEMP_F) {
+      value = 0;
+    } else {
+      value -= 20;
+    }
+  } else {
+    if (value == 0) {
+      value = MAX_TEMP_C;
+    } else if (value <= MIN_BOOST_TEMP_C) {
+      value = 0;
+    } else {
+      value -= 10;
+    }
+  }
+  setSettingValue(SettingsOptions::BoostTemp, value);
+}
+
 static void displayBoostTemp(void) {
+#ifdef LCD_160x80
+  const uint16_t val = getSettingValue(SettingsOptions::BoostTemp);
+  if (val) {
+    char buf[16];
+    snprintf(buf, sizeof(buf), "%u " HS02_SYM_DEG "%c", static_cast<unsigned>(val), getSettingValue(SettingsOptions::TemperatureInF) ? 'F' : 'C');
+    drawSettingValueText(buf);
+  } else {
+    drawSettingValueText("Off");
+  }
+#else
   if (getSettingValue(SettingsOptions::BoostTemp)) {
     Display::printNumber(getSettingValue(SettingsOptions::BoostTemp), 3, FontStyle::LARGE);
   } else {
     Display::drawUnavailableIcon();
   }
+#endif
 }
 
 static void displayAutomaticStartMode(void) {
+#ifdef LCD_160x80
+  switch (getSettingValue(SettingsOptions::AutoStartMode)) {
+  case autoStartMode_t::NO:
+  default:
+    drawSettingValueText("Off");
+    break;
+  case autoStartMode_t::SOLDER:
+    drawSettingValueText("Solder");
+    break;
+  case autoStartMode_t::SLEEP:
+    drawSettingValueText("Sleep");
+    break;
+  case autoStartMode_t::ZERO:
+    drawSettingValueText("Room temp");
+    break;
+  }
+#else
   switch (getSettingValue(SettingsOptions::AutoStartMode)) {
   case autoStartMode_t::NO:
     Display::drawUnavailableIcon();
@@ -621,13 +904,44 @@ static void displayAutomaticStartMode(void) {
     Display::drawUnavailableIcon();
     break;
   }
+#endif
 }
 
-static void displayTempChangeShortStep(void) { Display::printNumber(getSettingValue(SettingsOptions::TempChangeShortStep), 2, FontStyle::LARGE); }
+static void displayTempChangeShortStep(void) {
+#ifdef LCD_160x80
+  char buf[16];
+  snprintf(buf, sizeof(buf), "%u" HS02_SYM_DEG, static_cast<unsigned>(getSettingValue(SettingsOptions::TempChangeShortStep)));
+  drawSettingValueText(buf);
+#else
+  Display::printNumber(getSettingValue(SettingsOptions::TempChangeShortStep), 2, FontStyle::LARGE);
+#endif
+}
 
-static void displayTempChangeLongStep(void) { Display::printNumber(getSettingValue(SettingsOptions::TempChangeLongStep), 2, FontStyle::LARGE); }
+static void displayTempChangeLongStep(void) {
+#ifdef LCD_160x80
+  char buf[16];
+  snprintf(buf, sizeof(buf), "%u" HS02_SYM_DEG, static_cast<unsigned>(getSettingValue(SettingsOptions::TempChangeLongStep)));
+  drawSettingValueText(buf);
+#else
+  Display::printNumber(getSettingValue(SettingsOptions::TempChangeLongStep), 2, FontStyle::LARGE);
+#endif
+}
 
 static void displayLockingMode(void) {
+#ifdef LCD_160x80
+  switch (getSettingValue(SettingsOptions::LockingMode)) {
+  case lockingMode_t::DISABLED:
+  default:
+    drawSettingValueText("Off");
+    break;
+  case lockingMode_t::BOOST:
+    drawSettingValueText("Boost only");
+    break;
+  case lockingMode_t::FULL:
+    drawSettingValueText("Full");
+    break;
+  }
+#else
   switch (getSettingValue(SettingsOptions::LockingMode)) {
   case lockingMode_t::DISABLED:
     Display::drawUnavailableIcon();
@@ -642,8 +956,8 @@ static void displayLockingMode(void) {
     Display::drawUnavailableIcon();
     break;
   }
+#endif
 }
-
 #ifdef PROFILE_SUPPORT
 
 static void displayProfilePhases(void) { Display::printNumber(getSettingValue(SettingsOptions::ProfilePhases), 1, FontStyle::LARGE); }
@@ -660,6 +974,24 @@ static void setProfileTemp(const enum SettingsOptions option) {
     temp += 5;
     if (temp > MAX_TEMP_C) {
       temp = MIN_TEMP_C;
+    }
+  }
+  setSettingValue(option, temp);
+}
+
+static void setProfileTempPrev(const enum SettingsOptions option) {
+  uint16_t temp = getSettingValue(option);
+  if (getSettingValue(SettingsOptions::TemperatureInF)) {
+    if (temp <= MIN_TEMP_F) {
+      temp = MAX_TEMP_F;
+    } else {
+      temp -= 10;
+    }
+  } else {
+    if (temp <= MIN_TEMP_C) {
+      temp = MAX_TEMP_C;
+    } else {
+      temp -= 5;
     }
   }
   setSettingValue(option, temp);
@@ -695,11 +1027,22 @@ static bool showProfilePhase5Options(void) { return getSettingValue(SettingsOpti
 #endif /* PROFILE_SUPPORT */
 
 static void displaySensitivity(void) {
+#ifdef LCD_160x80
+  const uint16_t val = getSettingValue(SettingsOptions::Sensitivity);
+  if (val) {
+    char buf[12];
+    snprintf(buf, sizeof(buf), "%u", static_cast<unsigned>(val));
+    drawSettingValueText(buf);
+  } else {
+    drawSettingValueText("Off");
+  }
+#else
   if (getSettingValue(SettingsOptions::Sensitivity)) {
     Display::printNumber(getSettingValue(SettingsOptions::Sensitivity), 1, FontStyle::LARGE, false);
   } else {
     Display::drawUnavailableIcon();
   }
+#endif
 }
 static bool showSleepOptions(void) { return getSettingValue(SettingsOptions::Sensitivity) > 0; }
 
@@ -722,9 +1065,50 @@ static void setSleepTemp(void) {
   setSettingValue(SettingsOptions::SleepTemp, temp);
 }
 
-static void displaySleepTemp(void) { Display::printNumber(getSettingValue(SettingsOptions::SleepTemp), 3, FontStyle::LARGE); }
+static void setSleepTempPrev(void) {
+  uint16_t temp = getSettingValue(SettingsOptions::SleepTemp);
+  if (getSettingValue(SettingsOptions::TemperatureInF)) {
+    if (temp <= 60) {
+      temp = 580;
+    } else {
+      temp -= 20;
+    }
+  } else {
+    if (temp <= 10) {
+      temp = 300;
+    } else {
+      temp -= 10;
+    }
+  }
+  setSettingValue(SettingsOptions::SleepTemp, temp);
+}
+
+static void displaySleepTemp(void) {
+#ifdef LCD_160x80
+  char buf[16];
+  snprintf(buf, sizeof(buf), "%u " HS02_SYM_DEG "%c", static_cast<unsigned>(getSettingValue(SettingsOptions::SleepTemp)),
+           getSettingValue(SettingsOptions::TemperatureInF) ? 'F' : 'C');
+  drawSettingValueText(buf);
+#else
+  Display::printNumber(getSettingValue(SettingsOptions::SleepTemp), 3, FontStyle::LARGE);
+#endif
+}
 
 static void displaySleepTime(void) {
+#ifdef LCD_160x80
+  const uint16_t val = getSettingValue(SettingsOptions::SleepTime);
+  if (val == 0) {
+    drawSettingValueText("Off");
+  } else if (val < 6) {
+    char buf[16];
+    snprintf(buf, sizeof(buf), "%u s", static_cast<unsigned>(val * 10));
+    drawSettingValueText(buf);
+  } else {
+    char buf[16];
+    snprintf(buf, sizeof(buf), "%u min", static_cast<unsigned>(val - 5));
+    drawSettingValueText(buf);
+  }
+#else
   if (getSettingValue(SettingsOptions::SleepTime) == 0) {
     Display::drawUnavailableIcon();
   } else if (getSettingValue(SettingsOptions::SleepTime) < 6) {
@@ -734,17 +1118,29 @@ static void displaySleepTime(void) {
     Display::printNumber(getSettingValue(SettingsOptions::SleepTime) - 5, 2, FontStyle::LARGE);
     Display::print(LargeSymbolMinutes, FontStyle::LARGE);
   }
+#endif
 }
 
 #endif /* *not* NO_SLEEP_MODE */
 
 static void displayShutdownTime(void) {
+#ifdef LCD_160x80
+  const uint16_t val = getSettingValue(SettingsOptions::ShutdownTime);
+  if (val == 0) {
+    drawSettingValueText("Off");
+  } else {
+    char buf[16];
+    snprintf(buf, sizeof(buf), "%u min", static_cast<unsigned>(val));
+    drawSettingValueText(buf);
+  }
+#else
   if (getSettingValue(SettingsOptions::ShutdownTime) == 0) {
     Display::drawUnavailableIcon();
   } else {
     Display::printNumber(getSettingValue(SettingsOptions::ShutdownTime), 2, FontStyle::LARGE);
     Display::print(LargeSymbolMinutes, FontStyle::LARGE);
   }
+#endif
 }
 
 #ifdef HALL_SENSOR
@@ -810,7 +1206,13 @@ static void setTempF(void) {
 #endif /* PROFILE_SUPPORT */
 }
 
-static void displayTempF(void) { Display::printSymbolDeg(FontStyle::LARGE); }
+static void displayTempF(void) {
+#ifdef LCD_160x80
+  drawSettingValueText(getSettingValue(SettingsOptions::TemperatureInF) ? (HS02_SYM_DEG "F") : (HS02_SYM_DEG "C"));
+#else
+  Display::printSymbolDeg(FontStyle::LARGE);
+#endif
+}
 
 #ifndef NO_DISPLAY_ROTATE
 
@@ -831,7 +1233,37 @@ static void setDisplayRotation(void) {
   }
 }
 
+static void setDisplayRotationPrev(void) {
+  prevSettingValue(SettingsOptions::OrientationMode);
+  switch (getSettingValue(SettingsOptions::OrientationMode)) {
+  case orientationMode_t::RIGHT:
+    Display::setRotation(false);
+    break;
+  case orientationMode_t::LEFT:
+    Display::setRotation(true);
+    break;
+  case orientationMode_t::AUTO:
+    break;
+  default:
+    break;
+  }
+}
+
 static void displayDisplayRotation(void) {
+#ifdef LCD_160x80
+  switch (getSettingValue(SettingsOptions::OrientationMode)) {
+  case orientationMode_t::RIGHT:
+  default:
+    drawSettingValueText("Right");
+    break;
+  case orientationMode_t::LEFT:
+    drawSettingValueText("Left");
+    break;
+  case orientationMode_t::AUTO:
+    drawSettingValueText("Automatic");
+    break;
+  }
+#else
   switch (getSettingValue(SettingsOptions::OrientationMode)) {
   case orientationMode_t::RIGHT:
     Display::print(translatedString(Tr->SettingRightChar), FontStyle::LARGE);
@@ -846,18 +1278,39 @@ static void displayDisplayRotation(void) {
     Display::print(translatedString(Tr->SettingRightChar), FontStyle::LARGE);
     break;
   }
+#endif
 }
 
 #endif /* NO_DISPLAY_ROTATE */
 
-static void displayCoolingBlinkEnabled(void) { Display::drawCheckbox(getSettingValue(SettingsOptions::CoolingTempBlink)); }
+static void displayCoolingBlinkEnabled(void) {
+#ifdef LCD_160x80
+  drawSettingCheckbox(getSettingValue(SettingsOptions::CoolingTempBlink));
+#else
+  Display::drawCheckbox(getSettingValue(SettingsOptions::CoolingTempBlink));
+#endif
+}
 
+#ifndef LCD_160x80
 static void displayScrollSpeed(void) { Display::print(translatedString((getSettingValue(SettingsOptions::DescriptionScrollSpeed)) ? Tr->SettingFastChar : Tr->SettingSlowChar), FontStyle::LARGE); }
+#endif
 
-static void displayReverseButtonTempChangeEnabled(void) { Display::drawCheckbox(getSettingValue(SettingsOptions::ReverseButtonTempChangeEnabled)); }
+static void displayReverseButtonTempChangeEnabled(void) {
+#ifdef LCD_160x80
+  drawSettingCheckbox(getSettingValue(SettingsOptions::ReverseButtonTempChangeEnabled));
+#else
+  Display::drawCheckbox(getSettingValue(SettingsOptions::ReverseButtonTempChangeEnabled));
+#endif
+}
 
-static void displayReverseButtonSettings(void) { Display::drawCheckbox(getSettingValue(SettingsOptions::ReverseButtonSettings)); }
-
+static void displayReverseButtonSettings(void) {
+#ifdef LCD_160x80
+  drawSettingCheckbox(getSettingValue(SettingsOptions::ReverseButtonSettings));
+#else
+  Display::drawCheckbox(getSettingValue(SettingsOptions::ReverseButtonSettings));
+#endif
+}
+#ifndef LCD_160x80
 static void displayAnimationSpeed(void) {
   switch (getSettingValue(SettingsOptions::AnimationSpeed)) {
   case settingOffSpeed_t::SLOW:
@@ -877,20 +1330,54 @@ static void displayAnimationSpeed(void) {
 
 static bool displayAnimationOptions(void) { return getSettingValue(SettingsOptions::AnimationSpeed) > 0; }
 static void displayAnimationLoop(void) { Display::drawCheckbox(getSettingValue(SettingsOptions::AnimationLoop)); }
-
+#endif
 static void displayBrightnessLevel(void) {
+#ifdef LCD_160x80
+  char buf[12];
+  snprintf(buf, sizeof(buf), "%u", static_cast<unsigned>(getSettingValue(SettingsOptions::DisplayBrightness) / BRIGHTNESS_STEP + 1));
+  drawSettingValueText(buf);
+#else
   Display::printNumber((getSettingValue(SettingsOptions::DisplayBrightness) / BRIGHTNESS_STEP + 1), 1, FontStyle::LARGE);
+#endif
   // While not optimal to apply this here, it is _very_ convenient
   Display::setBrightness(getSettingValue(SettingsOptions::DisplayBrightness));
 }
 
+#ifdef LCD_160x80
+static void displayIdleTimeoutSeconds(void) {
+  char buf[16];
+  snprintf(buf, sizeof(buf), "%u s", static_cast<unsigned>(getSettingValue(SettingsOptions::DisplayIdleTimeoutSeconds)));
+  drawSettingValueText(buf);
+}
+#endif
+
+#ifndef LCD_160x80
 static void displayInvertColor(void) {
   Display::drawCheckbox(getSettingValue(SettingsOptions::DisplayInversion));
   // While not optimal to apply this here, it is _very_ convenient
   Display::setInverseDisplay(getSettingValue(SettingsOptions::DisplayInversion));
 }
-
+#endif
 static void displayLogoTime(void) {
+#ifdef LCD_160x80
+  switch (getSettingValue(SettingsOptions::LOGOTime)) {
+  case logoMode_t::SKIP:
+    drawSettingValueText("Off");
+    break;
+  case logoMode_t::ONETIME:
+    drawSettingValueText("Once");
+    break;
+  case logoMode_t::INFINITY:
+    drawSettingValueText("Infinity");
+    break;
+  default: {
+    char buf[12];
+    snprintf(buf, sizeof(buf), "%u s", static_cast<unsigned>(getSettingValue(SettingsOptions::LOGOTime)));
+    drawSettingValueText(buf);
+    break;
+  }
+  }
+#else
   switch (getSettingValue(SettingsOptions::LOGOTime)) {
   case logoMode_t::SKIP:
     Display::drawUnavailableIcon();
@@ -906,23 +1393,36 @@ static void displayLogoTime(void) {
     Display::print(LargeSymbolSeconds, FontStyle::LARGE);
     break;
   }
+#endif
 }
 
+#ifndef LCD_160x80
 static void displayAdvancedIDLEScreens(void) { Display::drawCheckbox(getSettingValue(SettingsOptions::DetailedIDLE)); }
 
 static void displayAdvancedSolderingScreens(void) { Display::drawCheckbox(getSettingValue(SettingsOptions::DetailedSoldering)); }
-
+#endif
 #ifdef BLE_ENABLED
 static void displayBluetoothLE(void) { Display::drawCheckbox(getSettingValue(SettingsOptions::BluetoothLE)); }
 #endif /* BLE_ENABLED */
 
 static void displayPowerLimit(void) {
+#ifdef LCD_160x80
+  const uint16_t val = getSettingValue(SettingsOptions::PowerLimit);
+  if (val == 0) {
+    drawSettingValueText("Off");
+  } else {
+    char buf[16];
+    snprintf(buf, sizeof(buf), "%u W", static_cast<unsigned>(val));
+    drawSettingValueText(buf);
+  }
+#else
   if (getSettingValue(SettingsOptions::PowerLimit) == 0) {
     Display::drawUnavailableIcon();
   } else {
     Display::printNumber(getSettingValue(SettingsOptions::PowerLimit), 3, FontStyle::LARGE);
     Display::print(LargeSymbolWatts, FontStyle::LARGE);
   }
+#endif
 }
 
 static void setCalibrate(void) {
@@ -937,13 +1437,47 @@ static void setCalibrate(void) {
   }
 }
 
-static void displayCalibrate(void) { Display::drawCheckbox(getSettingValue(SettingsOptions::CalibrateCJC)); }
-
+static void displayCalibrate(void) {
+#ifdef LCD_160x80
+  drawSettingCheckbox(getSettingValue(SettingsOptions::CalibrateCJC));
+#else
+  Display::drawCheckbox(getSettingValue(SettingsOptions::CalibrateCJC));
+#endif
+}
 static void setCalibrateVIN(void) {
   // Jump to the voltage calibration subscreen
   Display::clearScreen();
 
   for (;;) {
+#ifdef LCD_160x80
+    Display::setColorMode(true);
+    Display::setColorPalette(Hs02UI::kPaletteMenuAdvanced);
+    Display::clearScreenColor();
+    Display::drawRoundedBarColor(0, 0, 3, 80, 1);
+    uint16_t voltage = getInputVoltageX10(getSettingValue(SettingsOptions::VoltageDiv), 0);
+    char     vBuf[24];
+    snprintf(vBuf, sizeof(vBuf), "Input: %u.%u V", static_cast<unsigned>(voltage / 10), static_cast<unsigned>(voltage % 10));
+    Display::drawSpaceGrotesk(vBuf, 11, 7, 15, 0);
+    Display::drawAaBitmapColor(Hs02UI::kIconChevronLeft.data, Hs02UI::kIconChevronLeft.width, Hs02UI::kIconChevronLeft.height, 10, 50, 1);
+    char divBuf[12];
+    snprintf(divBuf, sizeof(divBuf), "%u", static_cast<unsigned>(getSettingValue(SettingsOptions::VoltageDiv)));
+    Display::drawSpaceGrotesk(divBuf, 34, 46, 19, 1);
+    Display::drawAaBitmapColor(Hs02UI::kIconChevronRight.data, Hs02UI::kIconChevronRight.width, Hs02UI::kIconChevronRight.height, 137, 50, 1);
+
+    const ButtonState btn  = getButtonState();
+    const bool        swap = Display::getRotation() ^ static_cast<bool>(getSettingValue(SettingsOptions::ReverseButtonSettings));
+    if ((!swap && (btn == BUTTON_F_SHORT || btn == BUTTON_F_LONG)) || (swap && (btn == BUTTON_B_SHORT || btn == BUTTON_B_LONG))) {
+      prevSettingValue(SettingsOptions::VoltageDiv);
+    } else if ((!swap && (btn == BUTTON_B_SHORT || btn == BUTTON_B_LONG)) || (swap && (btn == BUTTON_F_SHORT || btn == BUTTON_F_LONG))) {
+      nextSettingValue(SettingsOptions::VoltageDiv);
+    } else if (btn == BUTTON_OK_SHORT || btn == BUTTON_OK_LONG || btn == BUTTON_BOTH) {
+      saveSettings();
+      warnUser(translatedString(Tr->CalibrationDone), btn);
+      Display::refresh();
+      waitForButtonPressOrTimeout(0.5 * TICKS_SECOND);
+      return;
+    }
+#else
     Display::setCursor(DISPLAY_WIDTH - 5 * FONT_LARGE_WIDTH, 8);
     uint16_t voltage = getInputVoltageX10(getSettingValue(SettingsOptions::VoltageDiv), 0);
     Display::printNumber(voltage / 10, 2, FontStyle::LARGE);
@@ -961,6 +1495,8 @@ static void setCalibrateVIN(void) {
       nextSettingValue(SettingsOptions::VoltageDiv);
       break;
     case BUTTON_BOTH:
+    case BUTTON_OK_SHORT:
+    case BUTTON_OK_LONG:
     case BUTTON_F_LONG:
     case BUTTON_B_LONG:
       saveSettings();
@@ -974,6 +1510,7 @@ static void setCalibrateVIN(void) {
     default:
       break;
     }
+#endif
 
     Display::refresh();
     osDelay(40);
@@ -981,6 +1518,16 @@ static void setCalibrateVIN(void) {
 }
 
 static void displayPowerPulse(void) {
+#ifdef LCD_160x80
+  const uint16_t val = getSettingValue(SettingsOptions::KeepAwakePulse);
+  if (val) {
+    char buf[16];
+    snprintf(buf, sizeof(buf), "%u.%u W", static_cast<unsigned>(val / 10), static_cast<unsigned>(val % 10));
+    drawSettingValueText(buf);
+  } else {
+    drawSettingValueText("Off");
+  }
+#else
   if (getSettingValue(SettingsOptions::KeepAwakePulse)) {
     Display::printNumber(getSettingValue(SettingsOptions::KeepAwakePulse) / 10, 1, FontStyle::LARGE);
     Display::print(LargeSymbolDot, FontStyle::LARGE);
@@ -988,14 +1535,30 @@ static void displayPowerPulse(void) {
   } else {
     Display::drawUnavailableIcon();
   }
+#endif
 }
 
 static bool showPowerPulseOptions(void) { return getSettingValue(SettingsOptions::KeepAwakePulse) > 0; }
 
-static void displayPowerPulseWait(void) { Display::printNumber(getSettingValue(SettingsOptions::KeepAwakePulseWait), 1, FontStyle::LARGE); }
+static void displayPowerPulseWait(void) {
+#ifdef LCD_160x80
+  char buf[12];
+  snprintf(buf, sizeof(buf), "%u", static_cast<unsigned>(getSettingValue(SettingsOptions::KeepAwakePulseWait)));
+  drawSettingValueText(buf);
+#else
+  Display::printNumber(getSettingValue(SettingsOptions::KeepAwakePulseWait), 1, FontStyle::LARGE);
+#endif
+}
 
-static void displayPowerPulseDuration(void) { Display::printNumber(getSettingValue(SettingsOptions::KeepAwakePulseDuration), 1, FontStyle::LARGE); }
-
+static void displayPowerPulseDuration(void) {
+#ifdef LCD_160x80
+  char buf[12];
+  snprintf(buf, sizeof(buf), "%u", static_cast<unsigned>(getSettingValue(SettingsOptions::KeepAwakePulseDuration)));
+  drawSettingValueText(buf);
+#else
+  Display::printNumber(getSettingValue(SettingsOptions::KeepAwakePulseDuration), 1, FontStyle::LARGE);
+#endif
+}
 static void setResetSettings(void) {
   if (userConfirmation(translatedString(Tr->SettingsResetWarning))) {
     resetSettings();
@@ -1009,6 +1572,36 @@ static void setResetSettings(void) {
   }
 }
 
+#ifdef LCD_160x80
+static void displayMenu(size_t index) {
+  static const uint16_t *const kPalettes[5] = {
+      Hs02UI::kPaletteMenuPower,
+      Hs02UI::kPaletteMenuSolder,
+      Hs02UI::kPaletteMenuSleep,
+      Hs02UI::kPaletteMenuUI,
+      Hs02UI::kPaletteMenuAdvanced,
+  };
+  static const char *const kTitles[5] = {
+      "Power\nsettings",
+      "Soldering\nsettings",
+      "Sleep\nmode",
+      "User\ninterface",
+      "Advanced\nsettings",
+  };
+  static const Hs02UI::Icon2bpp *const kIcons[5] = {
+      &Hs02UI::kIconZap,
+      &Hs02UI::kIconFlame,
+      &Hs02UI::kIconMoonStar,
+      &Hs02UI::kIconPanelsTopLeft,
+      &Hs02UI::kIconCircuitBoard,
+  };
+  const size_t idx = index < 5 ? index : 0;
+  Display::setColorPalette(kPalettes[idx]);
+  Display::drawAaBitmapColor(Hs02UI::kBadgeCircle46.data, Hs02UI::kBadgeCircle46.width, Hs02UI::kBadgeCircle46.height, 108, 17, 1);
+  Display::drawAaBitmapColor(kIcons[idx]->data, kIcons[idx]->width, kIcons[idx]->height, 117, 26, 2);
+  Display::drawSpaceGrotesk(kTitles[idx], 8, 16, 17, 0);
+}
+#else
 // Indicates whether a menu transition is in progress, so that the menu icon
 // animation is paused during the transition.
 static bool animOpenState = false;
@@ -1055,6 +1648,7 @@ static void displayMenu(size_t index) {
   Display::drawArea(DISPLAY_WIDTH - SETTINGS_ICON_WIDTH - 2, 0, SETTINGS_ICON_WIDTH, SETTINGS_ICON_HEIGHT,
                     (&SettingsMenuIcons[index][(SETTINGS_ICON_WIDTH * (SETTINGS_ICON_HEIGHT / 8)) * currentFrame]));
 }
+#endif
 
 #if defined(POW_DC) || defined(POW_QC) || defined(POW_PD)
 static void displayPowerMenu(void) { displayMenu(0); }
@@ -1068,3 +1662,33 @@ static void displayPowerSavingMenu(void) { displayMenu(2); }
 static void displayUIMenu(void) { displayMenu(3); }
 
 static void displayAdvancedMenu(void) { displayMenu(4); }
+
+void stepPrevCustomSetting(SettingsOptions option) {
+  switch (option) {
+  case SettingsOptions::BoostTemp:
+    setBoostTempPrev();
+    break;
+#ifndef NO_SLEEP_MODE
+  case SettingsOptions::SleepTemp:
+    setSleepTempPrev();
+    break;
+#endif
+#ifdef PROFILE_SUPPORT
+  case SettingsOptions::ProfilePreheatTemp:
+  case SettingsOptions::ProfilePhase1Temp:
+  case SettingsOptions::ProfilePhase2Temp:
+  case SettingsOptions::ProfilePhase3Temp:
+  case SettingsOptions::ProfilePhase4Temp:
+  case SettingsOptions::ProfilePhase5Temp:
+    setProfileTempPrev(option);
+    break;
+#endif
+#ifndef NO_DISPLAY_ROTATE
+  case SettingsOptions::OrientationMode:
+    setDisplayRotationPrev();
+    break;
+#endif
+  default:
+    break;
+  }
+}

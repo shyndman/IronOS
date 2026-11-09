@@ -36,6 +36,12 @@ typedef struct {
 } menuitem;
 
 void                   enterSettingsMenu();
+void                   stepPrevCustomSetting(SettingsOptions option);
+#ifdef LCD_160x80
+const char            *hs02SettingLabel(SettingsItemIndex idx);
+const char            *hs02SettingHelp(SettingsItemIndex idx);
+void                   hs02SetTwoLineSettingLayout(bool twoLine);
+#endif
 extern const menuitem  rootSettingsMenu[];
 extern const menuitem *subSettingsMenus[];
 

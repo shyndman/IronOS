@@ -114,6 +114,7 @@ enum class SettingsItemIndex : uint8_t {
   LanguageSwitch,
   SolderingTipType,
   NUM_ITEMS,
+  DisplayIdleTimeout,
 };
 
 struct TranslationIndexTable {

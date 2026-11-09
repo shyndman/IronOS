@@ -952,7 +952,7 @@
           "content": "Boot logo duration"
         },
         "Xf4No": {
-          "content": "1 s",
+          "content": "3 s",
           "fill": "$section-ui-color",
           "x": 34
         },
@@ -1969,6 +1969,24 @@
       ]
     },
     {
+      "id": "RUS04",
+      "type": "ref",
+      "ref": "rLqZa",
+      "x": 1400,
+      "y": 260,
+      "descendants": {
+        "mqZZx": {
+          "x": 4,
+          "y": 28,
+          "fill": [],
+          "flipX": false,
+          "flipY": false,
+          "width": 156,
+          "height": 24
+        }
+      }
+    },
+    {
       "type": "frame",
       "id": "QGgGS",
       "x": 1000,
@@ -2180,7 +2198,7 @@
         {
           "type": "text",
           "id": "Ddkdj",
-          "x": 35,
+          "x": 30.5,
           "y": 7,
           "name": "Alert title",
           "fill": "$settings-text-color",
@@ -2406,8 +2424,8 @@
       "type": "ref",
       "ref": "wDFBu",
       "name": "Debug — Device ID",
-      "x": 2000,
-      "y": 360,
+      "x": 1994,
+      "y": 377,
       "descendants": {
         "sllG0": {
           "content": "Device ID"
@@ -2782,7 +2800,7 @@
       "name": "Home — cooling",
       "x": 1600,
       "y": 660,
-      "fill": "$home-idle-background",
+      "fill": "#15211aff",
       "descendants": {
         "HATib": {
           "fill": "$section-power-color"
@@ -2827,7 +2845,7 @@
       "name": "Home — tip disconnected",
       "x": 1600,
       "y": 760,
-      "fill": "$home-idle-background",
+      "fill": "#0d1c14ff",
       "descendants": {
         "HATib": {
           "fill": "$section-power-color"
@@ -2842,6 +2860,9 @@
         "o7ZbmB": {
           "content": "—",
           "fill": "$home-idle-secondary"
+        },
+        "fQkEZ": {
+          "fill": "#323d4dff"
         },
         "A1mtJ": {
           "enabled": false
@@ -2861,6 +2882,53 @@
           "enabled": true
         }
       }
+    },
+    {
+      "type": "rectangle",
+      "id": "OJpJo",
+      "x": 1404,
+      "y": 288,
+      "fill": {
+        "type": "gradient",
+        "gradientType": "linear",
+        "enabled": true,
+        "rotation": 90.00000000000001,
+        "size": {
+          "height": 1
+        },
+        "colors": [
+          {
+            "color": "#301d2900",
+            "position": 0
+          },
+          {
+            "color": "#301d29",
+            "position": 1
+          }
+        ]
+      },
+      "width": 21,
+      "height": 23
+    },
+    {
+      "type": "frame",
+      "id": "KNBKG",
+      "x": -200,
+      "y": 140,
+      "name": "Boot — animated splash",
+      "clip": true,
+      "width": 160,
+      "height": 80,
+      "fill": {
+        "type": "shader",
+        "enabled": true,
+        "url": "splash.glsl",
+        "uniforms": {
+          "u_sprite": "splash-sprites.png",
+          "u_fps": 6
+        }
+      },
+      "layout": "none"
     }
   ],
   "variables": {
@@ -3106,7 +3174,7 @@
     },
     "home-idle-background": {
       "type": "color",
-      "value": "#10141A"
+      "value": "#15221B"
     },
     "home-idle-secondary": {
       "type": "color",

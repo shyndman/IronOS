@@ -100,6 +100,7 @@ enum StatusLED {
 void setStatusLED(const enum StatusLED state);
 
 void setBuzzer(bool on);
+void setBuzzerVolume(uint8_t volume);
 
 // preStartChecks are run until they return 0
 // By the PID, after each ADC sample comes in

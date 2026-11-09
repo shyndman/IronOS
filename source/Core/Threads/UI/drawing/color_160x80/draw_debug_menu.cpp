@@ -1,127 +1,62 @@
+#include "Hs02UiAssets.hpp"
 #include "OperatingModes.h"
 #include "TipThermoModel.h"
 #include "main.hpp"
 #include "ui_drawing.hpp"
-
+#include <stdio.h>
 #ifdef LCD_160x80
 extern osThreadId GUITaskHandle;
 extern osThreadId MOVTaskHandle;
 extern osThreadId PIDTaskHandle;
 
 void ui_draw_debug_menu(const uint8_t item_number) {
-  Display::setCursor(0, 0);                                   // Position the cursor at the 0,0 (top left)
-  Display::print(SmallSymbolVersionNumber, FontStyle::SMALL); // Print version number
-  Display::setCursor(0, 24);                                  // second line
-  Display::print(DebugMenu[item_number], FontStyle::SMALL);
-  Display::setCursor(LCD_WIDTH - 6 * FONT_SMALL_WIDTH, 48); // third line
-  uint16_t tmp;
-  switch (item_number) {
-  case 0: // Build Date
-    break;
-  case 1: // Device ID
-  {
-    uint64_t id = getDeviceID();
-#ifdef DEVICE_HAS_VALIDATION_CODE
-    // If device has validation code; then we want to take over both lines of the screen
-    Display::clearScreen();   // Ensure the buffer starts clean
-    Display::setCursor(0, 0); // Position the cursor at the 0,0 (top left)
-    Display::print(DebugMenu[item_number], FontStyle::SMALL);
-    Display::drawHex(getDeviceValidation(), FontStyle::SMALL, 8);
-    Display::setCursor(0, 16); // second line
-#endif
-    Display::setCursor(36, 24);
-    Display::drawHex((uint32_t)(id >> 32), FontStyle::SMALL, 8);
-    Display::setCursor(36, 48);
-    Display::drawHex((uint32_t)(id & 0xFFFFFFFF), FontStyle::SMALL, 8);
+  static const char *const titles[17] = {"Build date", "Device ID", "Accelerometer", "Power source", "Input voltage", "Tip temp", "Handle temp", "Max temp", "Uptime", "Movement", "Tip resistance", "Raw tip", "CJC offset", "GUI stack", "MOV stack", "PID stack", "Tip cal"};
+  Display::setColorPalette(Hs02UI::kPaletteHomeIdle);
+  Display::drawRoundedBarColor(0, 0, 3, 80, 2);
+  const uint8_t item = item_number % 17;
+  Display::drawSpaceGrotesk(titles[item], 11, 7, 15, 0);
+  char index[8];
+  snprintf(index, sizeof(index), "%u/17", static_cast<unsigned>(item + 1));
+  Display::drawSpaceGrotesk(index, 152 - Display::measureSpaceGrotesk(index, 15), 7, 15, 2);
+  char value[40] = {};
+  uint32_t tmp;
+  switch (item) {
+  case 0: snprintf(value, sizeof(value), "%s", __DATE__); break;
+  case 1: {
+    const uint64_t id = getDeviceID();
+    snprintf(value, sizeof(value), "%04X" HS02_SYM_DOT "%08X", static_cast<unsigned>((id >> 32) & 0xFFFF), static_cast<unsigned>(id & 0xFFFFFFFF));
   } break;
-  case 2: // ACC Type
-    Display::setCursor(0, 48);
-    Display::print(AccelTypeNames[(int)DetectedAccelerometerVersion], FontStyle::SMALL);
-    break;
-  case 3: // Power Negotiation Status
-    Display::setCursor(0, 48);
-    Display::print(PowerSourceNames[getPowerSourceNumber()], FontStyle::SMALL);
-    break;
-  case 4: // Input Voltage
-    Display::print(SmallSymbolSpace, FontStyle::SMALL);
-    Display::print(SmallSymbolSpace, FontStyle::SMALL);
-    printVoltage();
-    break;
-  case 5: // Temp in °C
-    Display::printNumber(TipThermoModel::getTipInC(), 5, FontStyle::SMALL);
-    break;
-  case 6: // Handle Temp in °C
-    tmp = getHandleTemperature(0);
-    Display::printNumber(tmp / 10, 4, FontStyle::SMALL);
-    Display::print(SmallSymbolDot, FontStyle::SMALL);
-    Display::printNumber(tmp % 10, 1, FontStyle::SMALL);
-    break;
-  case 7: // Max Temp Limit in °C
-    Display::printNumber(TipThermoModel::getTipMaxInC(), 5, FontStyle::SMALL);
-    break;
-  case 8: // System Uptime
-    Display::printNumber(xTaskGetTickCount() / TICKS_100MS, 5, FontStyle::SMALL);
-    break;
-  case 9: // Movement Timestamp
-    Display::printNumber(lastMovementTime / TICKS_100MS, 5, FontStyle::SMALL);
-    break;
-  case 10: // Tip Resistance in Ω
-    Display::printNumber(getTipResistanceX10() / 10, 4, FontStyle::SMALL);
-    Display::print(SmallSymbolDot, FontStyle::SMALL);
-    Display::printNumber(getTipResistanceX10() % 10, 1, FontStyle::SMALL);
-    break;
-  case 11: // Raw Tip in µV
-    Display::printNumber(TipThermoModel::convertTipRawADCTouV(getTipRawTemp(0), true), 5, FontStyle::SMALL);
-    break;
-  case 12: // Tip Cold Junction Compensation Offset in µV
-    Display::printNumber(getSettingValue(SettingsOptions::CalibrationOffset), 5, FontStyle::SMALL);
-    break;
-  case 13: // High Water Mark for GUI
-    Display::printNumber(uxTaskGetStackHighWaterMark(GUITaskHandle), 5, FontStyle::SMALL);
-    break;
-  case 14: // High Water Mark for Movement Task
-    Display::printNumber(uxTaskGetStackHighWaterMark(MOVTaskHandle), 5, FontStyle::SMALL);
-    break;
-  case 15: // High Water Mark for PID Task
-    Display::printNumber(uxTaskGetStackHighWaterMark(PIDTaskHandle), 5, FontStyle::SMALL);
-    break;
-    break;
-#ifdef HALL_SENSOR
-  case 16: // Raw Hall Effect Value
-  {
-    int16_t hallEffectStrength = getRawHallEffect();
-    if (hallEffectStrength < 0) {
-      hallEffectStrength = -hallEffectStrength;
-    }
-    Display::printNumber(hallEffectStrength, 6, FontStyle::SMALL);
+  case 2: {
+    static const char *const accel[] = {"Scanning", "None", "MMA8652", "LIS2DH12", "BMA250", "MSA301", "SC7A20", "GPIO", "LIS2DH12", "KXTJ3"};
+    const unsigned a = static_cast<unsigned>(DetectedAccelerometerVersion);
+    snprintf(value, sizeof(value), "%s", a < sizeof(accel) / sizeof(accel[0]) ? accel[a] : "None");
   } break;
-#else
-  case 16: // HS-02 factory tip calibration readout
-  {
-    // Fnirsi BSP: three stock calibration ADC counts (140C/240C/340C reference
-    // points) decoded from the stock settings page; see Core/BSP/Fnirsi/ThermoModel.cpp.
-    // "In Use" means the piecewise curve built from them drives the tip readout;
-    // "Custom Curve" means they were absent/neutral placeholders and the measured
-    // absolute-temperature fallback is active instead.
-    extern bool hs02GetFactoryTipCal(uint32_t &a140, uint32_t &a240, uint32_t &a340);
-    uint32_t    a140, a240, a340;
-    const bool  calValid = hs02GetFactoryTipCal(a140, a240, a340);
-    Display::clearScreen();
-    Display::setCursor(0, 0);
-    Display::print(SmallSymbolTipCal, FontStyle::SMALL); // "Tip Cal"
-    Display::setCursor(0, 24);
-    Display::printNumber(a140, 3, FontStyle::SMALL, true);
-    Display::print(SmallSymbolSpace, FontStyle::SMALL);
-    Display::printNumber(a240, 3, FontStyle::SMALL, true);
-    Display::print(SmallSymbolSpace, FontStyle::SMALL);
-    Display::printNumber(a340, 4, FontStyle::SMALL, true);
-    Display::setCursor(0, 48);
-    Display::print(calValid ? SmallSymbolTipCalInUse : SmallSymbolTipCalUnused, FontStyle::SMALL);
+  case 3: {
+    static const char *const power[] = {"DC", "QC", "PD", "PD"};
+    const int8_t p = getPowerSourceNumber();
+    snprintf(value, sizeof(value), "%s", (p >= 0 && p < 4) ? power[p] : "DC");
   } break;
-#endif
-
+  case 4: tmp = getInputVoltageX10(getSettingValue(SettingsOptions::VoltageDiv), 0); snprintf(value, sizeof(value), "%u.%u V", static_cast<unsigned>(tmp / 10), static_cast<unsigned>(tmp % 10)); break;
+  case 5: snprintf(value, sizeof(value), "%u " HS02_SYM_DEG "C", static_cast<unsigned>(TipThermoModel::getTipInC())); break;
+  case 6: tmp = getHandleTemperature(0); snprintf(value, sizeof(value), "%u.%u " HS02_SYM_DEG "C", static_cast<unsigned>(tmp / 10), static_cast<unsigned>(tmp % 10)); break;
+  case 7: snprintf(value, sizeof(value), "%u " HS02_SYM_DEG "C", static_cast<unsigned>(TipThermoModel::getTipMaxInC())); break;
+  case 8: snprintf(value, sizeof(value), "%u.%u s", static_cast<unsigned>((xTaskGetTickCount() / TICKS_100MS) / 10), static_cast<unsigned>((xTaskGetTickCount() / TICKS_100MS) % 10)); break;
+  case 9: snprintf(value, sizeof(value), "%u.%u s", static_cast<unsigned>((lastMovementTime / TICKS_100MS) / 10), static_cast<unsigned>((lastMovementTime / TICKS_100MS) % 10)); break;
+  case 10: tmp = getTipResistanceX10(); snprintf(value, sizeof(value), "%u.%u " HS02_SYM_OHM, static_cast<unsigned>(tmp / 10), static_cast<unsigned>(tmp % 10)); break;
+  case 11: snprintf(value, sizeof(value), "%u " HS02_SYM_MICRO "V", static_cast<unsigned>(TipThermoModel::convertTipRawADCTouV(getTipRawTemp(0), true))); break;
+  case 12: snprintf(value, sizeof(value), "%u " HS02_SYM_MICRO "V", static_cast<unsigned>(getSettingValue(SettingsOptions::CalibrationOffset))); break;
+  case 13: snprintf(value, sizeof(value), "%u", static_cast<unsigned>(uxTaskGetStackHighWaterMark(GUITaskHandle))); break;
+  case 14: snprintf(value, sizeof(value), "%u", static_cast<unsigned>(uxTaskGetStackHighWaterMark(MOVTaskHandle))); break;
+  case 15: snprintf(value, sizeof(value), "%u", static_cast<unsigned>(uxTaskGetStackHighWaterMark(PIDTaskHandle))); break;
+  case 16: {
+    extern bool hs02GetFactoryTipCal(uint32_t &, uint32_t &, uint32_t &);
+    uint32_t a140, a240, a340;
+    hs02GetFactoryTipCal(a140, a240, a340);
+    snprintf(value, sizeof(value), "%u " HS02_SYM_DOT " %u " HS02_SYM_DOT " %u", static_cast<unsigned>(a140), static_cast<unsigned>(a240), static_cast<unsigned>(a340));
+  } break;
   default:
     break;
   }
+  Display::drawSpaceGrotesk(value, 11, 46, 19, 1);
 }
 #endif

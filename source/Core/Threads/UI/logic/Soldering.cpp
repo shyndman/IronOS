@@ -7,8 +7,17 @@
 // State 3 = buzzer timer
 
 OperatingMode handleSolderingButtons(const ButtonState buttons, guiContext *cxt) {
+#if defined(LCD_160x80)
+  if (buttons == BUTTON_OK_SHORT) {
+    cxt->transitionMode = TransitionAnimation::None;
+    return OperatingMode::SettingsMenu;
+  }
+  if (buttons == BUTTON_OK_LONG) {
+    cxt->transitionMode = TransitionAnimation::None;
+    return OperatingMode::DebugMenuReadout;
+  }
+#endif
   if (cxt->scratch_state.state1 >= 2) {
-    // Buttons are currently locked
     if (buttons == BUTTON_BOTH_LONG) {
       if (cxt->scratch_state.state1 == 3) {
         // Unlocking
@@ -50,6 +59,53 @@ OperatingMode handleSolderingButtons(const ButtonState buttons, guiContext *cxt)
   }
 
   // otherwise we are unlocked
+#if defined(LCD_160x80)
+  ButtonState btn = buttons;
+  if (Display::getRotation()) {
+    if (btn == BUTTON_F_SHORT) {
+      btn = BUTTON_B_SHORT;
+    } else if (btn == BUTTON_F_LONG) {
+      btn = BUTTON_B_LONG;
+    } else if (btn == BUTTON_B_SHORT) { 
+      btn = BUTTON_F_SHORT;
+    } else if (btn == BUTTON_B_LONG) {
+      btn = BUTTON_F_LONG;
+    }
+  }
+  switch (btn) {
+  case BUTTON_NONE:
+    cxt->scratch_state.state2 = 0;
+    cxt->scratch_state.state1 = 0;
+    break;
+  case BUTTON_B_SHORT:
+  case BUTTON_B_LONG:
+  case BUTTON_BOTH:
+    cxt->transitionMode = TransitionAnimation::None;
+    return OperatingMode::HomeScreen;
+  case BUTTON_F_LONG:
+    if (getSettingValue(SettingsOptions::BoostTemp)) {
+      cxt->scratch_state.state2 = 1;
+    }
+    break;
+  case BUTTON_F_SHORT:
+    cxt->transitionMode = TransitionAnimation::None;
+    return OperatingMode::TemperatureAdjust;
+  case BUTTON_BOTH_LONG:
+    if (getSettingValue(SettingsOptions::LockingMode)) {
+      if (cxt->scratch_state.state1 == 0) {
+        if (warnUser(translatedString(Tr->LockingKeysString), buttons)) {
+          cxt->scratch_state.state1 = 2;
+        }
+      } else {
+        warnUser(translatedString(Tr->UnlockingKeysString), buttons);
+      }
+    }
+    break;
+  default:
+    break;
+  }
+  return OperatingMode::Soldering;
+#else
   switch (buttons) {
   case BUTTON_NONE:
     cxt->scratch_state.state2 = 0;
@@ -59,18 +115,10 @@ OperatingMode handleSolderingButtons(const ButtonState buttons, guiContext *cxt)
   /*Fall through*/
   case BUTTON_BOTH:
   /*Fall through*/
-  case BUTTON_B_LONG:
-#if defined(LCD_160x80)
-    // The colour gauge screen and the mono menu system share one physical LCD buffer (see
-    // LCD.hpp) and can't slide-transition between each other; HomeScreen stays in the gauge
-    // family too, so this is always a hard cut here.
-    cxt->transitionMode = TransitionAnimation::None;
-#else
-  {
+  case BUTTON_B_LONG: {
     bool detailedView   = getSettingValue(SettingsOptions::DetailedIDLE) && getSettingValue(SettingsOptions::DetailedSoldering);
     cxt->transitionMode = detailedView ? TransitionAnimation::None : TransitionAnimation::Right;
   }
-#endif
     return OperatingMode::HomeScreen;
   case BUTTON_F_LONG:
     // if boost mode is enabled turn it on
@@ -81,12 +129,7 @@ OperatingMode handleSolderingButtons(const ButtonState buttons, guiContext *cxt)
   case BUTTON_OK_SHORT: // Dedicated OK button opens temperature adjust
   case BUTTON_F_SHORT:
   case BUTTON_B_SHORT:
-#if defined(LCD_160x80)
-    // TemperatureAdjust is a mono screen; hard cut, see the note above.
-    cxt->transitionMode = TransitionAnimation::None;
-#else
     cxt->transitionMode = TransitionAnimation::Left;
-#endif
     return OperatingMode::TemperatureAdjust;
   case BUTTON_BOTH_LONG:
     if (getSettingValue(SettingsOptions::LockingMode)) {
@@ -105,6 +148,7 @@ OperatingMode handleSolderingButtons(const ButtonState buttons, guiContext *cxt)
     break;
   }
   return OperatingMode::Soldering;
+#endif
 }
 
 OperatingMode gui_solderingMode(const ButtonState buttons, guiContext *cxt) {
@@ -141,19 +185,9 @@ OperatingMode gui_solderingMode(const ButtonState buttons, guiContext *cxt) {
   // Update status
   int error = currentTempTargetDegC - TipThermoModel::getTipInC();
   if (error >= -10 && error <= 10) {
-    // converged
-    if (!cxt->scratch_state.state5) {
-      setBuzzer(true);
-      cxt->scratch_state.state3 = xTaskGetTickCount() + TICKS_SECOND / 3;
-      cxt->scratch_state.state5 = true;
-    }
     setStatusLED(LED_HOT);
   } else {
     setStatusLED(LED_HEATING);
-    cxt->scratch_state.state5 = false;
-  }
-  if (cxt->scratch_state.state3 != 0 && xTaskGetTickCount() >= cxt->scratch_state.state3) {
-    setBuzzer(false);
   }
 
   // Draw in the screen details
@@ -172,7 +206,6 @@ OperatingMode gui_solderingMode(const ButtonState buttons, guiContext *cxt) {
 #endif
   // Check if we should bail due to undervoltage for example
   if (checkExitSoldering()) {
-    setBuzzer(false);
 #if defined(LCD_160x80)
     cxt->transitionMode = TransitionAnimation::None; // Staying within the colour gauge screen family.
 #else

@@ -1,8 +1,12 @@
 #include "Display.hpp"
 #include "OperatingModes.h"
 #include "ScrollMessage.hpp"
-
+#ifdef LCD_160x80
+#include "Hs02UiAssets.hpp"
+#define HELP_TEXT_TIMEOUT_TICKS (TICKS_SECOND * 4)
+#else
 #define HELP_TEXT_TIMEOUT_TICKS (TICKS_SECOND * 3)
+#endif
 /*
  * The settings menu is the most complex bit of GUI code we have
  * The menu consists of a two tier menu
@@ -20,22 +24,105 @@
  * description.
  */
 static void printShortDescription(SettingsItemIndex settingsItemIndex, uint16_t cursorCharPosition) {
+#ifdef LCD_160x80
+  (void)settingsItemIndex;
+  (void)cursorCharPosition;
+#else
   // print short description (default single line, explicit double line)
   uint8_t shortDescIndex = static_cast<uint8_t>(settingsItemIndex);
   Display::printWholeScreen(translatedString(Tr->SettingsShortNames[shortDescIndex]));
 
-// prepare cursor for value
-// make room for scroll indicator
-#ifdef LCD_160x80
-  Display::setCursor(4, 40);
-#else
+  // prepare cursor for value
+  // make room for scroll indicator
   Display::setCursor(cursorCharPosition * FONT_LARGE_WIDTH - 2, 0);
 #endif
 }
 
+#ifdef LCD_160x80
+static const uint16_t *hs02MenuPalette(uint16_t mainEntry) {
+  static const uint16_t *const kPalettes[5] = {
+      Hs02UI::kPaletteMenuPower,
+      Hs02UI::kPaletteMenuSolder,
+      Hs02UI::kPaletteMenuSleep,
+      Hs02UI::kPaletteMenuUI,
+      Hs02UI::kPaletteMenuAdvanced,
+  };
+  return kPalettes[mainEntry < 5 ? mainEntry : 0];
+}
+#endif
+
 // Render a menu, based on the position given
 // This will either draw the menu item, or the help text depending on how long its been since button press
 void render_menu(const menuitem *item, guiContext *cxt) {
+#ifdef LCD_160x80
+  const uint16_t mainEntry = cxt->scratch_state.state1;
+  const uint16_t subEntry  = cxt->scratch_state.state2;
+  if (subEntry == 0) {
+    item->draw();
+    return;
+  }
+
+  Display::setColorPalette(hs02MenuPalette(mainEntry));
+  Display::drawRoundedBarColor(0, 0, 3, 80, 1);
+
+  if ((xTaskGetTickCount() - lastButtonTime < HELP_TEXT_TIMEOUT_TICKS) || item->description == 0) {
+    bool hasNL = false;
+    if (item->shortDescriptionSize > 0) {
+      const char *label = hs02SettingLabel(item->shortDescriptionIndex);
+      for (const char *p = label; *p; ++p) {
+        if (*p == '\n') {
+          hasNL = true;
+          break;
+        }
+      }
+      Display::drawSpaceGrotesk(label, 11, hasNL ? 5 : 7, 15, 0);
+    }
+    hs02SetTwoLineSettingLayout(hasNL);
+    const SettingsItemIndex idx        = item->shortDescriptionIndex;
+    const bool              isCheckbox = (idx == SettingsItemIndex::CooldownBlink || idx == SettingsItemIndex::ReverseButtonTempChange ||
+                             idx == SettingsItemIndex::ReverseButtonSettings || idx == SettingsItemIndex::CalibrateCJC);
+    const int16_t           chevronY   = hasNL ? 52 : 50;
+    if (idx == SettingsItemIndex::VoltageCalibration) {
+      Display::drawSpaceGrotesk("Calibrate", 11, hasNL ? 48 : 46, 19, 1);
+      Display::drawAaBitmapColor(Hs02UI::kIconChevronRight.data, Hs02UI::kIconChevronRight.width, Hs02UI::kIconChevronRight.height, 137, chevronY, 1);
+    } else if (idx == SettingsItemIndex::SettingsReset) {
+      Display::drawSpaceGrotesk("Reset", 11, hasNL ? 48 : 46, 19, 1);
+      Display::drawAaBitmapColor(Hs02UI::kIconChevronRight.data, Hs02UI::kIconChevronRight.width, Hs02UI::kIconChevronRight.height, 137, chevronY, 1);
+    } else if (isCheckbox) {
+      item->draw();
+    } else {
+      Display::drawAaBitmapColor(Hs02UI::kIconChevronLeft.data, Hs02UI::kIconChevronLeft.width, Hs02UI::kIconChevronLeft.height, 10, chevronY, 1);
+      item->draw();
+      Display::drawAaBitmapColor(Hs02UI::kIconChevronRight.data, Hs02UI::kIconChevronRight.width, Hs02UI::kIconChevronRight.height, 137, chevronY, 1);
+    }
+  } else {
+    uint16_t *isRenderingHelp = &(cxt->scratch_state.state6);
+    *isRenderingHelp          = 1;
+    const char      *helpText = hs02SettingHelp(item->shortDescriptionIndex);
+    const uint16_t   msgWidth = Display::measureSpaceGrotesk(helpText, 19);
+    const TickType_t tickOff  = (xTaskGetTickCount() - lastButtonTime) - HELP_TEXT_TIMEOUT_TICKS;
+    constexpr TickType_t stepDiv = TICKS_100MS / 5;
+    const uint32_t   pausePx  = ((TICKS_SECOND * 4 / 5) * 7u) / (5u * stepDiv);
+    const uint32_t   gapPx    = ((TICKS_SECOND / 2) * 7u) / (5u * stepDiv);
+    const uint32_t   outPx    = msgWidth + 8u;
+    const uint32_t   inPx     = 149u;
+    const uint32_t   cyclePx  = pausePx + outPx + gapPx + inPx;
+    const uint32_t   posPx    = ((tickOff * 7u) / (5u * stepDiv)) % cyclePx;
+    int16_t          drawX    = 11;
+    if (posPx < pausePx) {
+      drawX = 11;
+    } else if (posPx < pausePx + outPx) {
+      drawX = 11 - static_cast<int16_t>(posPx - pausePx);
+    } else if (posPx < pausePx + outPx + gapPx) {
+      drawX = LCD_WIDTH;
+    } else {
+      drawX = LCD_WIDTH - static_cast<int16_t>(posPx - (pausePx + outPx + gapPx));
+    }
+    if (drawX < LCD_WIDTH) {
+      Display::drawSpaceGrotesk(helpText, drawX, 28, 19, 0, 4, LCD_WIDTH);
+    }
+  }
+#else
   // If recent interaction or not help text draw the entry
   if ((xTaskGetTickCount() - lastButtonTime < HELP_TEXT_TIMEOUT_TICKS) || item->description == 0) {
 
@@ -51,6 +138,7 @@ void render_menu(const menuitem *item, guiContext *cxt) {
     const char *description = translatedString(Tr->SettingsDescriptions[item->description - 1]);
     drawScrollingText(description, (xTaskGetTickCount() - lastButtonTime) - HELP_TEXT_TIMEOUT_TICKS);
   }
+#endif
 }
 
 uint16_t getMenuLength(const menuitem *menu, const uint16_t stop) {
@@ -149,6 +237,7 @@ OperatingMode gui_SettingsMenu(const ButtonState buttons, guiContext *cxt) {
     *currentMenuLength = getMenuLength(currentMenu, 128 /* Max length of any menu*/);
   }
 
+#ifndef LCD_160x80
   if (*isRenderingHelp == 0) {
     //  Draw scroll
 
@@ -186,6 +275,7 @@ OperatingMode gui_SettingsMenu(const ButtonState buttons, guiContext *cxt) {
       Display::drawScrollIndicator((uint8_t)position, indicatorHeight);
     }
   }
+#endif
 
   // Now handle user button input
   auto callIncrementHandler = [&]() {
@@ -197,6 +287,140 @@ OperatingMode gui_SettingsMenu(const ButtonState buttons, guiContext *cxt) {
     return false;
   };
 
+#ifdef LCD_160x80
+  auto callDecrementHandler = [&]() {
+    const SettingsOptions opt = currentMenu[currentScreen].autoSettingOption;
+    if ((int)opt < (int)SettingsOptions::SettingsOptionsLength) {
+      if (currentMenu[currentScreen].incrementHandler != nullptr) {
+        if (opt == SettingsOptions::BoostTemp || opt == SettingsOptions::SleepTemp || opt == SettingsOptions::OrientationMode) {
+          stepPrevCustomSetting(opt);
+        } else {
+          currentMenu[currentScreen].incrementHandler();
+        }
+      } else {
+        prevSettingValue(opt);
+      }
+    }
+  };
+
+  auto stepRootMenu = [&](int8_t dir) {
+    uint16_t total = 0;
+    while (rootSettingsMenu[total].draw != nullptr) {
+      total++;
+    }
+    if (total == 0) {
+      return;
+    }
+    for (uint16_t tries = 0; tries < total; ++tries) {
+      if (dir > 0) {
+        *mainEntry = (*mainEntry + 1) % total;
+      } else {
+        *mainEntry = (*mainEntry == 0) ? (total - 1) : (*mainEntry - 1);
+      }
+      if (rootSettingsMenu[*mainEntry].isVisible == nullptr || rootSettingsMenu[*mainEntry].isVisible()) {
+        break;
+      }
+    }
+    *currentMenuLength = 0;
+  };
+
+  const bool swap = Display::getRotation() ^ static_cast<bool>(getSettingValue(SettingsOptions::ReverseButtonSettings));
+  ButtonState btn = buttons;
+  if (swap) {
+    if (btn == BUTTON_F_SHORT) {
+      btn = BUTTON_B_SHORT;
+    } else if (btn == BUTTON_F_LONG) {
+      btn = BUTTON_B_LONG;
+    } else if (btn == BUTTON_B_SHORT) {
+      btn = BUTTON_F_SHORT;
+    } else if (btn == BUTTON_B_LONG) {
+      btn = BUTTON_F_LONG;
+    }
+  }
+
+  switch (btn) {
+  case BUTTON_NONE:
+    (*autoRepeatAcceleration) = 0;
+    (*autoRepeatTimer)        = 0;
+    break;
+  case BUTTON_BOTH:
+  case BUTTON_OK_LONG:
+    if (*subEntry == 0) {
+      saveSettings();
+      return OperatingMode::HomeScreen;
+    } else {
+      *subEntry          = 0;
+      *isRenderingHelp   = 0;
+      *currentMenuLength = 0;
+      return OperatingMode::SettingsMenu;
+    }
+  case BUTTON_OK_SHORT:
+    if (*isRenderingHelp) {
+      *isRenderingHelp = 0;
+    } else if (*subEntry == 0) {
+      (*subEntry)        = 1;
+      *currentMenuLength = 0;
+    } else {
+      return moveToNextEntry(cxt);
+    }
+    break;
+  case BUTTON_F_LONG:
+    if (xTaskGetTickCount() + (*autoRepeatAcceleration) > (*autoRepeatTimer) + PRESS_ACCEL_INTERVAL_MAX) {
+      (*autoRepeatTimer) = xTaskGetTickCount();
+      (*autoRepeatAcceleration) += PRESS_ACCEL_STEP;
+      if (*isRenderingHelp) {
+        *isRenderingHelp = 0;
+      } else if (*subEntry == 0) {
+        stepRootMenu(-1);
+      } else {
+        callDecrementHandler();
+        *currentMenuLength = 0;
+      }
+    }
+    break;
+  case BUTTON_F_SHORT:
+    if (*isRenderingHelp) {
+      *isRenderingHelp = 0;
+    } else if (*subEntry == 0) {
+      stepRootMenu(-1);
+    } else {
+      callDecrementHandler();
+      *currentMenuLength = 0;
+    }
+    break;
+  case BUTTON_B_LONG:
+    if (xTaskGetTickCount() + (*autoRepeatAcceleration) > (*autoRepeatTimer) + PRESS_ACCEL_INTERVAL_MAX) {
+      (*autoRepeatTimer) = xTaskGetTickCount();
+      (*autoRepeatAcceleration) += PRESS_ACCEL_STEP;
+      if (*isRenderingHelp) {
+        *isRenderingHelp = 0;
+      } else if (*subEntry == 0) {
+        stepRootMenu(1);
+      } else {
+        callIncrementHandler();
+        *currentMenuLength = 0;
+      }
+    }
+    break;
+  case BUTTON_B_SHORT:
+    if (*isRenderingHelp) {
+      *isRenderingHelp = 0;
+    } else if (*subEntry == 0) {
+      stepRootMenu(1);
+    } else {
+      callIncrementHandler();
+      *currentMenuLength = 0;
+    }
+    break;
+  default:
+    break;
+  }
+
+  if ((PRESS_ACCEL_INTERVAL_MAX - (*autoRepeatAcceleration)) < PRESS_ACCEL_INTERVAL_MIN) {
+    (*autoRepeatAcceleration) = PRESS_ACCEL_INTERVAL_MAX - PRESS_ACCEL_INTERVAL_MIN;
+  }
+  return OperatingMode::SettingsMenu;
+#else
   // Modify a button value before processing a key press if setting to swap buttons is enabled
   bool    swapButtonSettings = getSettingValue(SettingsOptions::ReverseButtonSettings);
   uint8_t buttonPress;
@@ -301,4 +525,5 @@ OperatingMode gui_SettingsMenu(const ButtonState buttons, guiContext *cxt) {
 
   // Otherwise we stay put for next render iteration
   return newMode;
+#endif
 }

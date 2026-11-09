@@ -115,10 +115,8 @@ OperatingMode gui_solderingProfileMode(const ButtonState buttons, guiContext *cx
   // cooldown phase done?
   if (cxt->scratch_state.state1 > getSettingValue(SettingsOptions::ProfilePhases)) {
     if (TipThermoModel::getTipInC() < 55) {
-      // we're done, let the buzzer beep too
       setStatusLED(LED_STANDBY);
       if (cxt->scratch_state.state4 == 0) {
-        setBuzzer(true);
         cxt->scratch_state.state4 = xTaskGetTickCount() + TICKS_SECOND / 3;
       }
     }
@@ -156,7 +154,6 @@ OperatingMode gui_solderingProfileMode(const ButtonState buttons, guiContext *cx
   }
 
   if (checkExitSoldering() || (cxt->scratch_state.state4 != 0 && xTaskGetTickCount() >= cxt->scratch_state.state4)) {
-    setBuzzer(false);
     return OperatingMode::HomeScreen;
   }
   if (heaterThermalRunawayCounter > 8) {

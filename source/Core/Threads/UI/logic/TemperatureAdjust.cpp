@@ -29,6 +29,28 @@ OperatingMode gui_solderingTempAdjust(const ButtonState buttonIn, guiContext *cx
     saveSettings();
     cxt->transitionMode = TransitionAnimation::Right;
     return cxt->previousMode;
+#ifdef LCD_160x80
+  case BUTTON_B_LONG:
+    if (xTaskGetTickCount() - (*autoRepeatTimer) + (*autoRepeatAcceleration) > PRESS_ACCEL_INTERVAL_MAX) {
+      delta              = getSettingValue(SettingsOptions::TempChangeLongStep);
+      (*autoRepeatTimer) = xTaskGetTickCount();
+      (*autoRepeatAcceleration) += PRESS_ACCEL_STEP;
+    }
+    break;
+  case BUTTON_B_SHORT:
+    delta = getSettingValue(SettingsOptions::TempChangeShortStep);
+    break;
+  case BUTTON_F_LONG:
+    if (xTaskGetTickCount() - (*autoRepeatTimer) + (*autoRepeatAcceleration) > PRESS_ACCEL_INTERVAL_MAX) {
+      delta              = -getSettingValue(SettingsOptions::TempChangeLongStep);
+      (*autoRepeatTimer) = xTaskGetTickCount();
+      (*autoRepeatAcceleration) += PRESS_ACCEL_STEP;
+    }
+    break;
+  case BUTTON_F_SHORT:
+    delta = -getSettingValue(SettingsOptions::TempChangeShortStep);
+    break;
+#else
   case BUTTON_B_LONG:
     if (xTaskGetTickCount() - (*autoRepeatTimer) + (*autoRepeatAcceleration) > PRESS_ACCEL_INTERVAL_MAX) {
       delta              = -getSettingValue(SettingsOptions::TempChangeLongStep);
@@ -49,12 +71,18 @@ OperatingMode gui_solderingTempAdjust(const ButtonState buttonIn, guiContext *cx
   case BUTTON_F_SHORT:
     delta = getSettingValue(SettingsOptions::TempChangeShortStep);
     break;
+#endif
   default:
     break;
   }
   if ((PRESS_ACCEL_INTERVAL_MAX - (*autoRepeatAcceleration)) < PRESS_ACCEL_INTERVAL_MIN) {
     (*autoRepeatAcceleration) = PRESS_ACCEL_INTERVAL_MAX - PRESS_ACCEL_INTERVAL_MIN;
   }
+#ifdef LCD_160x80
+  if (Display::getRotation()) {
+    delta = -delta;
+  }
+#endif
   // If buttons are flipped; flip the delta
   if (getSettingValue(SettingsOptions::ReverseButtonTempChangeEnabled)) {
     delta = -delta;

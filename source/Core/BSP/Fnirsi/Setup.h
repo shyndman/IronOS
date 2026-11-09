@@ -1,5 +1,7 @@
 #pragma once
 #include "configuration.h"
+#include <stdbool.h>
+#include <stdint.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -13,6 +15,9 @@ extern uint16_t ADCReadings[ADC_SAMPLES]; // Used to store the adc readings for 
 void hwInit(void);
 uint16_t getADCVin(uint8_t sample);
 uint16_t getADCHandleTemp(uint8_t sample);
+uint16_t getADCCurrent(uint8_t sample);
+void setCH224KVoltage(uint8_t volts);
+bool CH224KVoltageSettled(void);
 
 #ifdef __cplusplus
 }

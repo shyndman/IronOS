@@ -1,27 +1,40 @@
 #include "Buttons.hpp"
+#include "Hs02UiAssets.hpp"
 #include "OperatingModeUtilities.h"
 #include "OperatingModes.h"
 #include "ScrollMessage.hpp"
 #include "ui_drawing.hpp"
+#include <string.h>
 #ifdef LCD_160x80
 bool warnUser(const char *warning, const ButtonState buttons) {
-  // warnUser may be called inline from the colour soldering screen. It draws
-  // through the legacy 1bpp primitives, so select that interpretation before
-  // GUIThread performs its final refresh for this frame.
-  Display::setColorMode(false);
-  Display::clearScreen();
-  // Wrap when every word fits a line. A large-font message that doesn't (e.g. an 8-glyph word
-  // against the 6-glyph line) scrolls like userConfirmation() does, from when the warning
-  // appeared; scrolling is large-font only, so small-font messages always wrap.
-  if (warning[0] != '\x01' || ui_print_wrapped(warning, 0, false)) {
-    ui_print_wrapped(warning, 0);
-  } else {
-    drawScrollingText(warning + 1, xTaskGetTickCount() - lastButtonTime);
+  const uint16_t *palette = Hs02UI::kPaletteMenuPower;
+  const Hs02UI::Icon2bpp *icon = &Hs02UI::kIconTriangleAlert;
+  const char *title = "Alert";
+  const char *detail = "";
+  if (warning == translatedString(Tr->WarningThermalRunaway)) {
+    palette = Hs02UI::kPaletteAlertDanger; title = "Thermal runaway"; detail = "Heater stopped";
+  } else if (warning == translatedString(Tr->WarningTipShorted)) {
+    palette = Hs02UI::kPaletteAlertDanger; title = "Tip shorted"; detail = "Heater stopped";
+  } else if (warning == translatedString(Tr->LockingKeysString) || warning == translatedString(Tr->WarningKeysLockedString)) {
+    palette = Hs02UI::kPaletteMenuSolder; icon = &Hs02UI::kIconLock; title = "Buttons"; detail = "Locked";
+  } else if (warning == translatedString(Tr->UnlockingKeysString)) {
+    palette = Hs02UI::kPaletteMenuSolder; icon = &Hs02UI::kIconLockOpen; title = "Buttons"; detail = "Unlocked";
+  } else if (warning == translatedString(Tr->CalibrationDone)) {
+    palette = Hs02UI::kPaletteMenuAdvanced; icon = &Hs02UI::kIconCircleCheck; title = "Calibration"; detail = "Saved";
+  } else if (warning == translatedString(Tr->ResetOKMessage)) {
+    palette = Hs02UI::kPaletteMenuAdvanced; icon = &Hs02UI::kIconCircleCheck; title = "Settings"; detail = "Reset OK";
+  } else if (warning == translatedString(Tr->SettingsResetMessage)) {
+    palette = Hs02UI::kPaletteMenuAdvanced; title = "Settings"; detail = "Changed";
+  } else if (warning == translatedString(Tr->NoAccelerometerMessage)) {
+    palette = Hs02UI::kPaletteMenuPower; title = "Accelerometer"; detail = "Not detected";
   }
-  // Also timeout after 5 seconds
-  if ((xTaskGetTickCount() - lastButtonTime) > TICKS_SECOND * 5) {
-    return true;
-  }
+  Display::setColorPalette(palette);
+  Display::clearScreenColor();
+  Display::drawRoundedBarColor(0, 0, 3, 80, 1);
+  Display::drawAaBitmapColor(icon->data, icon->width, icon->height, 11, 8, 1);
+  Display::drawSpaceGrotesk(title, 35, 7, 15, 0);
+  Display::drawSpaceGrotesk(detail, 11, 46, 19, 1);
+  if ((xTaskGetTickCount() - lastButtonTime) > TICKS_SECOND * 5) return true;
   return buttons != BUTTON_NONE;
 }
 #endif

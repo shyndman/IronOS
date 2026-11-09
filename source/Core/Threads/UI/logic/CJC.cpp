@@ -6,8 +6,12 @@ OperatingMode performCJCC(const ButtonState buttons, guiContext *cxt) {
 
   // While we wait for the pre-start checks to finish, we cant run CJC (as the pre-start checks control the tip)
   if (preStartChecks() == 0) {
+#ifdef LCD_160x80
+    ui_draw_cjc_sampling(0);
+#else
     Display::setCursor(0, 0);
     Display::print(translatedString(Tr->CJCCalibrating), FontStyle::SMALL);
+#endif
     return OperatingMode::CJCCalibration;
   }
 

@@ -39,9 +39,14 @@ void power_check() {
   }
 
   const uint16_t requestedX10 = kCH224KLevels[CH224KLevel] * 10;
-  const uint16_t inputX10 = getInputVoltageX10(getSettingValue(SettingsOptions::VoltageDiv), 1);
-  if (inputX10 * 100 >= requestedX10 * 85 || CH224KLevel == 3) {
+  const uint16_t inputX10     = getInputVoltageX10(getSettingValue(SettingsOptions::VoltageDiv), 1);
+  const bool     withinLower  = inputX10 * 100 >= requestedX10 * 85;
+  const bool     withinUpper  = inputX10 * 100 <= requestedX10 * 115;
+  if ((withinLower && withinUpper) || (CH224KLevel == 3 && withinUpper)) {
     CH224KSettled = true;
+    return;
+  }
+  if (CH224KLevel == 3) {
     return;
   }
 

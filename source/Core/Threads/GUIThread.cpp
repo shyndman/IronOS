@@ -43,37 +43,71 @@ guiContext    context;                                                  // Conte
 OperatingMode handle_post_init_state();
 
 #if defined(LCD_160x80)
-// The HS-02 colour home/soldering/sleep screens share one physical LCD buffer with the mono menu
-// system (see LCD.hpp) rather than paying for two buffers -- pick the right interpretation for
-// whichever mode is about to draw this frame, once, in this single dispatch point.
-static bool isColorScreenMode(OperatingMode mode) {
-  switch (mode) {
-  case OperatingMode::HomeScreen:
-  case OperatingMode::Soldering:
-  case OperatingMode::Sleeping:
-  case OperatingMode::Hibernating:
-    return true;
-  default:
-    return false;
-  }
-}
+static bool isColorScreenMode(OperatingMode) { return true; }
 #endif
 
 OperatingMode guiHandleDraw(void) {
 #if defined(LCD_160x80)
-  const bool colorScreen = isColorScreenMode(currentOperatingMode);
-  Display::setColorMode(colorScreen);
-  if (colorScreen) {
-    Display::clearScreenColor();
-  } else {
-    Display::clearScreen();
-  }
+  Display::setColorMode(true);
+  Display::clearScreenColor();
 #else
   Display::clearScreen(); // Clear ready for render pass
 #endif
   // Read button state
   ButtonState buttons = getButtonState();
-  // Enforce screen on if buttons pressed, movement, hot tip etc
+  // Enforce screen on if buttons pressed or movement within timeout
+#if defined(LCD_160x80)
+  constexpr uint8_t    kWakeBeepVolume     = 8;
+  constexpr TickType_t kWakeBeepPulseTicks = TICKS_100MS;
+  static bool          displayIsOff        = false;
+  static TickType_t    wakeBeepStartTick   = 0;
+  const TickType_t     now                 = xTaskGetTickCount();
+  const uint32_t       tipTemp             = TipThermoModel::getTipInC();
+
+  const TickType_t idleTimeoutTicks = (TickType_t)getSettingValue(SettingsOptions::DisplayIdleTimeoutSeconds) * TICKS_SECOND;
+  const bool       isIdleTimedOut   = (buttons == BUTTON_NONE) && ((now - lastMovementTime) > idleTimeoutTicks) && ((now - lastButtonTime) > idleTimeoutTicks);
+
+  if (isIdleTimedOut) {
+    if (!displayIsOff) {
+      Display::setDisplayState(Display::DisplayState::OFF);
+      displayIsOff = true;
+    }
+  } else {
+    if (displayIsOff) {
+      Display::setDisplayState(Display::DisplayState::ON);
+      displayIsOff = false;
+      if (tipTemp >= 50) {
+        wakeBeepStartTick = now ? now : 1;
+      }
+    } else {
+      Display::setDisplayState(Display::DisplayState::ON);
+    }
+  }
+
+  if (wakeBeepStartTick != 0) {
+    const TickType_t elapsed = now - wakeBeepStartTick;
+    if (elapsed < kWakeBeepPulseTicks) {
+      setBuzzerVolume(kWakeBeepVolume);
+    } else if (elapsed < kWakeBeepPulseTicks * 2) {
+      setBuzzerVolume(0);
+    } else if (elapsed < kWakeBeepPulseTicks * 3) {
+      setBuzzerVolume(kWakeBeepVolume);
+    } else {
+      setBuzzerVolume(0);
+      wakeBeepStartTick = 0;
+    }
+  }
+
+  if (currentOperatingMode == OperatingMode::Sleeping || currentOperatingMode == OperatingMode::Hibernating) {
+    setStatusLED(LED_COOLING_STILL_HOT);
+  } else if (currentOperatingMode != OperatingMode::Soldering && currentOperatingMode != OperatingMode::SolderingProfile) {
+    if (tipTemp >= 50) {
+      setStatusLED(LED_COOLING_STILL_HOT);
+    } else {
+      setStatusLED(LED_STANDBY);
+    }
+  }
+#else
   if (buttons != BUTTON_NONE) {
     Display::setDisplayState(Display::DisplayState::ON);
   } else {
@@ -95,6 +129,7 @@ OperatingMode guiHandleDraw(void) {
       }
     }
   }
+#endif
   // Dispatch button state to gui mode
   OperatingMode newMode = currentOperatingMode;
   switch (currentOperatingMode) {
@@ -144,21 +179,23 @@ OperatingMode guiHandleDraw(void) {
     newMode = gui_solderingTempAdjust(buttons, &context);
     break;
   case OperatingMode::DebugMenuReadout:
-    newMode = showDebugMenu(buttons, &context);
+    currentTempTargetDegC = 0;
+    newMode               = showDebugMenu(buttons, &context);
     break;
   case OperatingMode::CJCCalibration:
     newMode = performCJCC(buttons, &context);
     break;
   case OperatingMode::SettingsMenu:
-    newMode = gui_SettingsMenu(buttons, &context);
+    currentTempTargetDegC = 0;
+    newMode               = gui_SettingsMenu(buttons, &context);
     break;
   case OperatingMode::InitialisationDone:
     newMode = handle_post_init_state();
     break;
   case OperatingMode::Hibernating:
     context.scratch_state.state4 = 1;
-    gui_SolderingSleepingMode(buttons, &context);
-    if (lastButtonTime > 0 || lastMovementTime > 0) {
+    newMode                      = gui_SolderingSleepingMode(buttons, &context);
+    if (newMode == OperatingMode::Hibernating && (lastButtonTime > 0 || lastMovementTime > 0)) {
       newMode = OperatingMode::Soldering;
     }
     break;
@@ -187,13 +224,7 @@ void guiRenderLoop(void) {
       }
     }
 #if defined(LCD_160x80)
-    // Menus use the legacy 1bpp buffer while home/soldering/sleep use the
-    // 2bpp colour interpretation. The transition routines only understand
-    // two 1bpp framebuffers, so never animate across that representation
-    // boundary (for example SettingsMenu -> HomeScreen).
-    if (isColorScreenMode(currentOperatingMode) != isColorScreenMode(newMode)) {
-      context.transitionMode = TransitionAnimation::None;
-    }
+    context.transitionMode = TransitionAnimation::None;
 #endif
     memset(&context.scratch_state, 0, sizeof(context.scratch_state));
     currentOperatingMode = newMode;
@@ -233,12 +264,14 @@ void guiRenderLoop(void) {
   }
 
 #if defined(LCD_160x80)
-  // Startup warnings are rendered into the framebuffer. Reveal the panel only
-  // after that completed frame is on the LCD, never while it contains a blank
-  // initialization frame.
-  if (currentOperatingMode == OperatingMode::StartupWarnings && context.scratch_state.state7) {
+  static bool backlightRevealed = false;
+  if (!backlightRevealed && currentOperatingMode != OperatingMode::InitialisationDone && currentOperatingMode != OperatingMode::StartupWarnings) {
+    Display::setBrightness(getSettingValue(SettingsOptions::DisplayBrightness));
+    backlightRevealed = true;
+  } else if (currentOperatingMode == OperatingMode::StartupWarnings && context.scratch_state.state7) {
     Display::setBrightness(getSettingValue(SettingsOptions::DisplayBrightness));
     context.scratch_state.state7 = 0;
+    backlightRevealed            = true;
   }
 #endif
 }

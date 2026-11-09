@@ -13,7 +13,20 @@
 #include "n32l40x.h"
 #include "n32l40x_dma.h"
 #include "n32l40x_tim.h"
-#include <stdint.h>
+void setCH224KVoltage(uint8_t volts) {
+  const bool cfg2 = (volts >= 15);
+  const bool cfg3 = (volts == 12 || volts == 15);
+  if (cfg2) {
+    GPIO_SetBits(CH224_CFG_Port, CH224_CFG2_Pin);
+  } else {
+    GPIO_ResetBits(CH224_CFG_Port, CH224_CFG2_Pin);
+  }
+  if (cfg3) {
+    GPIO_SetBits(CH224_CFG_Port, CH224_CFG3_Pin);
+  } else {
+    GPIO_ResetBits(CH224_CFG_Port, CH224_CFG3_Pin);
+  }
+}
 
 static void clockInit(void) {
 
@@ -169,7 +182,7 @@ static void gpioInit(void) {
   GPIO_InitStructure.Pin = ADC_CURR_Pin;
   GPIO_InitPeripheral(ADC_CURR_Port, &GPIO_InitStructure);
 
-  // TODO: PWMs
+  // Configure the PWM output pins.
   GPIO_InitStructure.GPIO_Mode    = GPIO_Mode_Out_PP; // temporary to not mess with HW
   GPIO_InitStructure.GPIO_Current = GPIO_DC_2mA;
   GPIO_InitStructure.GPIO_Pull    = GPIO_No_Pull;
@@ -206,15 +219,12 @@ static void gpioInit(void) {
 #else
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
   GPIO_InitPeripheral(LED_Port, &GPIO_InitStructure);
-#if BUTTON_BACKLIGHT != 0
-  GPIO_SetBits(LED_Port, LED1_Pin); // Enable <-> button LEDs
-#endif
+  GPIO_SetBits(LED_Port, LED1_Pin);
+  GPIO_ResetBits(LED_Port, LED2_Pin);
 #endif
 
-  // Temporary manual configs
-  GPIO_ResetBits(USB_CTL_Port, USB_CTL_Pin); // Route USB to CH224 and request 20V
-  GPIO_ResetBits(CH224_CFG_Port, CH224_CFG3_Pin);
-  GPIO_SetBits(CH224_CFG_Port, CH224_CFG2_Pin);
+  GPIO_ResetBits(USB_CTL_Port, USB_CTL_Pin); // Route USB to CH224
+  setCH224KVoltage(20);
 }
 
 static void adcInit(void) {

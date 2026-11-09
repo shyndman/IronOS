@@ -11,6 +11,41 @@ OperatingMode handleHomeButtons(const ButtonState buttons, guiContext *cxt) {
   } else {
     cxt->scratch_state.state1 = 1;
   }
+#if defined(LCD_160x80)
+  ButtonState btn = buttons;
+  if (Display::getRotation()) {
+    if (btn == BUTTON_F_SHORT) {
+      btn = BUTTON_B_SHORT;
+    } else if (btn == BUTTON_F_LONG) {
+      btn = BUTTON_B_LONG;
+    } else if (btn == BUTTON_B_SHORT) {
+      btn = BUTTON_F_SHORT;
+    } else if (btn == BUTTON_B_LONG) {
+      btn = BUTTON_F_LONG;
+    }
+  }
+  switch (btn) {
+  case BUTTON_F_SHORT:
+    if (!isTipDisconnected()) {
+      cxt->transitionMode = TransitionAnimation::None;
+      return OperatingMode::Soldering;
+    }
+    break;
+  case BUTTON_OK_SHORT:
+    cxt->transitionMode = TransitionAnimation::None;
+    return OperatingMode::SettingsMenu;
+  case BUTTON_OK_LONG:
+    cxt->transitionMode = TransitionAnimation::None;
+    return OperatingMode::DebugMenuReadout;
+  case BUTTON_B_SHORT:
+  case BUTTON_B_LONG:
+  case BUTTON_NONE:
+  case BUTTON_BOTH:
+  default:
+    break;
+  }
+  return OperatingMode::HomeScreen;
+#else
   switch (buttons) {
   case BUTTON_NONE:
     // Do nothing
@@ -19,61 +54,39 @@ OperatingMode handleHomeButtons(const ButtonState buttons, guiContext *cxt) {
     break;
 
   case BUTTON_B_LONG:
-#if defined(LCD_160x80)
-    // The colour gauge screen and the mono menu system share LCD buffer storage (see LCD.hpp).
-    // Their slide transition routines interpret frames differently, so every crossing between
-    // the two representations uses a hard cut.
-    cxt->transitionMode = TransitionAnimation::None;
-#else
     cxt->transitionMode = TransitionAnimation::Down;
-#endif
     return OperatingMode::DebugMenuReadout;
     break;
   case BUTTON_F_LONG:
 #ifdef PROFILE_SUPPORT
     if (!isTipDisconnected()) {
-#if defined(LCD_160x80)
-      cxt->transitionMode = TransitionAnimation::None;
-#else
       cxt->transitionMode = TransitionAnimation::Left;
-#endif
       return OperatingMode::SolderingProfile;
     } else {
       return OperatingMode::HomeScreen;
     }
 #else
-#if defined(LCD_160x80)
-    cxt->transitionMode = TransitionAnimation::None;
-#else
     cxt->transitionMode = TransitionAnimation::Left;
-#endif
     return OperatingMode::TemperatureAdjust;
 #endif
     break;
   case BUTTON_OK_SHORT: // Dedicated OK button enters soldering (same as front-press)
   case BUTTON_F_SHORT:
     if (!isTipDisconnected()) {
-#if defined(LCD_160x80)
-      cxt->transitionMode = TransitionAnimation::None; // Staying within the colour gauge screen family.
-#else
       bool detailedView   = getSettingValue(SettingsOptions::DetailedIDLE) && getSettingValue(SettingsOptions::DetailedSoldering);
       cxt->transitionMode = detailedView ? TransitionAnimation::None : TransitionAnimation::Left;
-#endif
       return OperatingMode::Soldering;
     }
     break;
   case BUTTON_B_SHORT:
-#if defined(LCD_160x80)
-    cxt->transitionMode = TransitionAnimation::None;
-#else
     cxt->transitionMode = TransitionAnimation::Right;
-#endif
     return OperatingMode::SettingsMenu;
     break;
   default:
     break;
   }
   return OperatingMode::HomeScreen;
+#endif
 }
 
 OperatingMode drawHomeScreen(const ButtonState buttons, guiContext *cxt) {

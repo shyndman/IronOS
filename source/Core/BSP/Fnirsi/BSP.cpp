@@ -68,6 +68,17 @@ uint16_t getADCVin(uint8_t sample) {
   }
   return filter.average();
 }
+uint16_t getADCCurrent(uint8_t sample) {
+  static history<uint16_t, ADC_FILTER_LEN> filter = {{0}, 0, 0};
+  if (sample) {
+    uint32_t sum = 0;
+    for (uint8_t i = 1; i < ADC_SAMPLES; i += ADC_CHANNELS) {
+      sum += ADCReadings[i];
+    }
+    filter.update(sum);
+  }
+  return filter.average();
+}
 
 uint16_t getInputVoltageX10(uint16_t divisor, uint8_t sample) {
   // VIN ADC maximum is 32768 == 3.3V at input == 36.3V (1:11 divider)
@@ -126,7 +137,6 @@ void resetWatchdog() { IWDG_ReloadKey(); }
 void reboot() { NVIC_SystemReset(); }
 
 void delay_ms(uint16_t count) {
-  // TODO: provide better delay
   for (volatile uint32_t i = 0; i < count * 6000; i++) {
   }
 }
@@ -144,45 +154,34 @@ bool          isTipDisconnected() {
 void setStatusLED(const enum StatusLED state) {
   static bool       led;
   static TickType_t last;
-  TickType_t        now   = xTaskGetTickCount();
-  TickType_t        delta = now - last;
+  const TickType_t  now   = xTaskGetTickCount();
+  const TickType_t  delta = now - last;
 
   switch (state) {
-  // ON
   case LED_HOT:
+  case LED_HEATING:
     led = true;
     break;
 
-  // Blink fast
-  case LED_HEATING:
-    if (delta >= 200) {
-      led  = !led;
-      last = now;
-    }
-    break;
-
-  // Slow flash
   case LED_COOLING_STILL_HOT:
-    if ((led) && (delta >= 100)) {
-      led  = !led;
-      last = now;
-    } else if ((!led) && (delta >= 900)) {
+    if (delta >= 500) {
       led  = !led;
       last = now;
     }
     break;
 
-  // OFF
+  case LED_STANDBY:
+  case LED_OFF:
   default:
     led = false;
     break;
   }
 
-  // Set LED state
-  if (led)
+  if (led) {
     GPIO_SetBits(LED_Port, LED2_Pin);
-  else
+  } else {
     GPIO_ResetBits(LED_Port, LED2_Pin);
+  }
 }
 
 void setBuzzer(bool on) {
@@ -192,90 +191,17 @@ void setBuzzer(bool on) {
   TIM_SetCmp1(TIM2, on ? BUZZER_VOLUME : 0);
 }
 
-#ifdef TIP_RESISTANCE_SENSE_Pin
-// We want to calculate lastTipResistance
-// If tip is connected, and the tip is cold and the tip is not being heated
-// We can use the GPIO to inject a small current into the tip and measure this
-// The gpio is 100k -> diode -> tip -> gnd
-// Source is 3.3V-0.5V
-// Which is around 0.028mA this will induce:
-// 6 ohm tip -> 3.24mV (Real world ~= 3320)
-// 8 ohm tip -> 4.32mV (Real world ~= 4500)
-// Which is definitely measureable
-// Taking shortcuts here as we know we only really have to pick apart 6 and 8 ohm tips
-// These are reported as 60 and 75 respectively
-void performTipResistanceSampleReading() {
-  // 0 = read then turn on pullup, 1 = read then turn off pullup, 2 = read again
-  tipResistanceReadings[tipResistanceReadingSlot] = TipThermoModel::convertTipRawADCTouV(getTipRawTemp(1));
-
-  HAL_GPIO_WritePin(TIP_RESISTANCE_SENSE_GPIO_Port, TIP_RESISTANCE_SENSE_Pin, (tipResistanceReadingSlot == 0) ? GPIO_PIN_SET : GPIO_PIN_RESET);
-
-  tipResistanceReadingSlot++;
+void setBuzzerVolume(uint8_t volume) {
+  TIM_SetCmp1(TIM2, volume < 20 ? volume : 20);
 }
-bool tipShorted = false;
-void FinishMeasureTipResistance() {
 
-  // Otherwise we now have the 4 samples;
-  //  _^_ order, 2 delta's, combine these
+uint8_t preStartChecks() { return CH224KVoltageSettled() ? 1 : 0; }
 
-  int32_t calculatedSkew = tipResistanceReadings[0] - tipResistanceReadings[2]; // If positive tip is cooling
-  calculatedSkew /= 2;                                                          // divide by two to get offset per time constant
+uint8_t preStartChecksDone() { return 1; }
 
-  int32_t reading = (((tipResistanceReadings[1] - tipResistanceReadings[0]) + calculatedSkew) // jump 1 - skew
-                     +                                                                        // +
-                     ((tipResistanceReadings[1] - tipResistanceReadings[2]) + calculatedSkew) // jump 2 - skew
-                     )                                                                        //
-                    / 2;                                                                      // Take average
-  // // As we are only detecting two resistances; we can split the difference for now
-  uint8_t newRes = 0;
-  if (reading > 1200) {
-    // return; // Change nothing as probably disconnected tip
-    tipResistanceReadingSlot = lastTipResistance = 0;
-    return;
-  } else if (reading < 200) {
-    tipShorted = true;
-  } else if (reading < 520) {
-    newRes = 40;
-  } else if (reading < 800) {
-    newRes = 62;
-  } else {
-    newRes = 80;
-  }
-  lastTipResistance = newRes;
-}
-volatile bool       tipMeasurementOccuring = true;
-volatile TickType_t nextTipMeasurement     = 100;
-
-void performTipMeasurementStep() {
-
-  // Wait 200ms for settle time
-  if (xTaskGetTickCount() < (nextTipMeasurement)) {
-    return;
-  }
-  nextTipMeasurement = xTaskGetTickCount() + (TICKS_100MS * 5);
-  if (tipResistanceReadingSlot < numTipResistanceReadings) {
-    performTipResistanceSampleReading();
-    return;
-  }
-
-  // We are sensing the resistance
-  FinishMeasureTipResistance();
-
-  tipMeasurementOccuring = false;
-}
-#endif
-uint8_t preStartChecks() {
-  // TODO: check 3V3 supply
-  // TODO: check tip resistance
-
-#ifdef TIP_RESISTANCE_SENSE_Pin
-  performTipMeasurementStep();
-  if (preStartChecksDone() != 1) {
-    return 0;
-  }
-#endif
-
-  return 1;
+uint8_t getTipResistanceX10() {
+  const uint8_t userSelected = getUserSelectedTipResistance();
+  return userSelected ? userSelected : TIP_RESISTANCE;
 }
 
 // N32L403 ID is either 96 or 128 bit long. Let's use first 64 bits of the 96bit one for now.
@@ -288,40 +214,53 @@ uint64_t getDeviceID() {
   return (uid.deviceID);
 }
 
-uint8_t preStartChecksDone() {
-  // TODO: IMPLEMENT
-  return 1;
-}
-
-uint8_t getTipResistanceX10() {
-  // TODO: IMPLEMENT
-  return TIP_RESISTANCE; // Auto mode
-}
-
-bool isTipShorted() {
-  // TODO: IMPLEMENT
-  return false;
-}
-uint16_t getTipThermalMass() {
-  // TODO: IMPLEMENT
-  return TIP_THERMAL_MASS;
-}
-uint16_t getTipInertia() {
-  // TODO: IMPLEMENT
-  return TIP_THERMAL_INERTIA;
-}
+bool isTipShorted() { return false; }
+uint16_t getTipThermalMass() { return TIP_THERMAL_MASS; }
+uint16_t getTipInertia() { return TIP_THERMAL_INERTIA; }
 
 void showBootLogo(void) {
-  // Blit the colour FNIRSI logo (extracted from stock firmware) straight to the panel,
-  // then reveal it and hold until a button is pressed or the timeout elapses.
-  LCD::drawNativeImage(FNIRSI_LOGO_X, FNIRSI_LOGO_Y, FNIRSI_LOGO_W, FNIRSI_LOGO_H, fnirsiBootLogo);
-  // SPI has drained here, but wait for the panel to scan the new GRAM once before
-  // enabling its backlight; this avoids exposing the previous white scanline.
+  const uint16_t durationSetting = getSettingValue(SettingsOptions::LOGOTime);
+  if (durationSetting == logoMode_t::SKIP) {
+    return;
+  }
+
+  LCD::drawIndexedImage(FNIRSI_LOGO_X, FNIRSI_LOGO_Y, FNIRSI_LOGO_W, FNIRSI_LOGO_H, fnirsiBootLogoFrame0, fnirsiBootLogoPalette);
   vTaskDelay(TICKS_SECOND / 60);
   LCD::setBrightness(getSettingValue(SettingsOptions::DisplayBrightness));
-  waitForButtonPressOrTimeout(TICKS_SECOND * 2);
-}
 
+  const bool       infinite = (durationSetting == logoMode_t::INFINITY);
+  const TickType_t duration = (durationSetting == logoMode_t::ONETIME) ? TICKS_SECOND : (TICKS_SECOND * durationSetting);
+  const TickType_t start    = xTaskGetTickCount();
+
+  // Eat any button still held from boot
+  while (getButtonState() != BUTTON_NONE) {
+    vTaskDelay(TICKS_10MS);
+  }
+
+  uint8_t    frame         = 0;
+  TickType_t lastFrameTick = xTaskGetTickCount();
+  for (;;) {
+    const TickType_t now = xTaskGetTickCount();
+    if (!infinite && (now - start) >= duration) {
+      break;
+    }
+    if (getButtonState() != BUTTON_NONE) {
+      break;
+    }
+    if ((now - lastFrameTick) >= (TICKS_10MS * (FNIRSI_LOGO_FRAME_MS / 10))) {
+      lastFrameTick = now;
+      frame         = (uint8_t)((frame + 1) % FNIRSI_LOGO_FRAME_COUNT);
+      LCD::drawIndexedImage(FNIRSI_LOGO_ANIM_X, FNIRSI_LOGO_ANIM_Y, FNIRSI_LOGO_ANIM_W, FNIRSI_LOGO_ANIM_H, fnirsiBootLogoAnimFrames[frame],
+                            fnirsiBootLogoPalette);
+    }
+    vTaskDelay(TICKS_10MS);
+  }
+
+  if (durationSetting == logoMode_t::ONETIME) {
+    setSettingValue(SettingsOptions::LOGOTime, logoMode_t::SKIP);
+    saveSettings();
+  }
+}
 bool getFUS302IRQLow() { return false; }
 
 void unstick_I2C() { /* What is brown and sticky? A stick. */ }

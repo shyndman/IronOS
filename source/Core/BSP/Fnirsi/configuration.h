@@ -76,7 +76,7 @@
  * Buzzer (annoying)
  *
  */
-#define BUZZER_VOLUME 0 // Range: 0 - 20
+#define BUZZER_VOLUME 4 // Range: 0 - 20
 
 /**
  * Button backlight <- ->
@@ -128,9 +128,11 @@
 #define ADC_MAX_READING  (4096 * 8)  // oversample 12bit adc 8 times
 #define ADC_VDD_MV        3300       // ADC max reading millivolts
 
-// #define POW_PD 0
-#define POW_PD_EXT 3 // TODO: implement
-#define POW_DC
+#define POW_QC             1
+#define POW_QC_20V         1
+#define QC_IDEAL_VOLTAGE   200
+#define POW_DC             1
+#define DC_MIN_VOLTAGE_X10 60 // Stock firmware undervoltage threshold is 6.0V
 
 // Deriving the Voltage div:
 // Vin_max = (3.3*(r1+r2))/(r2)
@@ -241,9 +243,9 @@
 // P_delivered = P_requested * (R_assumed / R_true) -- a pure gain on the controller
 // output, indistinguishable from scaling KP/KI/KD together. Whoever retunes the gains
 // above absorbs any error here. Do NOT "correct" it in isolation.
-#define TIP_RESISTANCE          25   // F210, unmeasured placeholder
+#define TIP_RESISTANCE          20
 #else
-#define TIP_RESISTANCE          25   // C245 is around 2.5R
+#define TIP_RESISTANCE          26   // Measured 2.60 ohm C245 tip
 #endif
 
 #define FLASH_LOGOADDR      (0x08000000 + (122 * 1024)) // 2KB up to address 0x0801F000 (124 * 1024)

@@ -51,14 +51,11 @@ extern uint16_t tipSenseResistancex10Ohms;
  * extrapolates its last segment. All of this is checked against the stock images
  * running in tools/hs02-stock-emu.
  *
- * A unit calibrated on stock was calibrated with that 25C included, so it gets the
- * stock sum exactly. An uncalibrated HS-02B runs the nominal curve WITHOUT the 25C:
- * with it, stock over-reads (one unit, cold reading 0 counts, melted 60/40 solder at
- * a curve value of 190-200C, which stock would show as 215-225C). Leaving the 25C off
- * is a one-unit, one-temperature fit, not a model; replace it once somebody measures
- * a B against a thermometer. IronOS keeps
- * its own settings at 0x0801E000-0x0801F000, so the stock page survives flashing
- * IronOS and we can reuse the factory calibration directly.
+ * Every unit uses this curve, including units with erased calibration pages or the
+ * stock 0x8000 placeholders. The nominal placeholders decode to counts 223/393/572
+ * on HS-02A and 68/117/190 on HS-02B. Stock always adds 25C after the curve.
+ * IronOS keeps its own settings at 0x0801E000-0x0801F000, so the stock page survives
+ * flashing IronOS and can provide per-unit calibration points.
  */
 namespace {
 constexpr uint32_t stockSettingsPageAddr = 0x0801F800;
@@ -77,37 +74,21 @@ constexpr uint32_t stockCount440   = 770;
 #endif
 constexpr uint32_t stockCurveOffsetCx10 = 250; // stock tip temperature = curve + 25C
 
-uint32_t interpolateFallbackTempCx10(uint32_t tipuV, uint32_t loweruV, uint32_t lowerTempCx10, uint32_t upperuV, uint32_t upperTempCx10) {
-  return lowerTempCx10 + ((tipuV - loweruV) * (upperTempCx10 - lowerTempCx10)) / (upperuV - loweruV);
-}
+bool     factoryCalChecked     = false;
+bool     factoryCalValid       = false;
+bool     factoryCalCustomized  = false;
+uint32_t adcCount140           = 0; // Raw 12-bit ADC counts at the three factory reference points
+uint32_t adcCount240           = 0;
+uint32_t adcCount340           = 0;
+uint32_t curveOffsetCx10       = 0;
 
-uint32_t fallbackTipTempCx10(uint32_t tipuV) {
-  // Absolute tip temperatures measured on one HS-02A without usable factory
-  // calibration. The 0uV point is the midpoint of a 28-33C cold-tip reading.
-  if (tipuV <= 5400) {
-    return interpolateFallbackTempCx10(tipuV, 0, 305, 5400, 2230);
-  }
-  if (tipuV <= 6680) {
-    return interpolateFallbackTempCx10(tipuV, 5400, 2230, 6680, 2730);
-  }
-  if (tipuV <= 8370) {
-    return interpolateFallbackTempCx10(tipuV, 6680, 2730, 8370, 3500);
-  }
-  if (tipuV <= 10540) {
-    return interpolateFallbackTempCx10(tipuV, 8370, 3500, 10540, 4000);
-  }
-  if (tipuV <= 12090) {
-    return interpolateFallbackTempCx10(tipuV, 10540, 4000, 12090, 4500);
-  }
-  return interpolateFallbackTempCx10(tipuV, 12090, 4500, 13640, 5000);
+void useNominalCal() {
+  adcCount140     = 0x8000 - stockCalBias140;
+  adcCount240     = 0x8000 - stockCalBias240;
+  adcCount340     = 0x8000 - stockCalBias340;
+  curveOffsetCx10 = stockCurveOffsetCx10;
+  factoryCalValid = true;
 }
-
-bool     factoryCalChecked = false;
-bool     factoryCalValid   = false;
-uint32_t adcCount140       = 0; // Raw 12-bit ADC counts at the three factory reference points
-uint32_t adcCount240       = 0;
-uint32_t adcCount340       = 0;
-uint32_t curveOffsetCx10   = 0; // stockCurveOffsetCx10 once a real stock calibration is in use
 
 // The stock curve wants the raw reading, but tipuVDelta already had the CJC offset
 // setting removed. That setting defaults to 900uV = 64 stock counts, which is nearly the
@@ -124,56 +105,38 @@ uint32_t stockRawTipuV(uint32_t tipuVDelta) {
   return (rawuV < offsetuV) ? rawuV : offsetuV;
 }
 
-#ifdef MODEL_HS02B
-// The HS-02A fallback curve below was measured on an F245 tip and reads a B far too
-// low, so the B never uses it. Like the stock B firmware, an uncalibrated unit runs on
-// the nominal curve instead.
-void useNominalCal() {
-  adcCount140     = 0x8000 - stockCalBias140;
-  adcCount240     = 0x8000 - stockCalBias240;
-  adcCount340     = 0x8000 - stockCalBias340;
-  factoryCalValid = true;
-}
-#endif
-
 void loadFactoryCal() {
   factoryCalChecked = true;
-#ifdef MODEL_HS02B
   useNominalCal();
-#endif
   const uint32_t *page = (const uint32_t *)stockSettingsPageAddr;
   if (page[0] == 0xFFFFFFFF) {
-    return; // Erased page; stock firmware never ran / settings wiped
-  }
-  const int32_t a140 = (int32_t)(page[0x16] & 0xFFFF) - (int32_t)stockCalBias140;
-  const int32_t a240 = (int32_t)(page[0x17] & 0xFFFF) - (int32_t)stockCalBias240;
-  const int32_t a340 = (int32_t)(page[0x18] & 0xFFFF) - (int32_t)stockCalBias340;
-  // Always expose the decoded counts for the debug menu, even when rejected below.
-  adcCount140 = (a140 > 0) ? (uint32_t)a140 : 0;
-  adcCount240 = (a240 > 0) ? (uint32_t)a240 : 0;
-  adcCount340 = (a340 > 0) ? (uint32_t)a340 : 0;
-  // Units that never received a calibration carry the 0x8000 neutral placeholder
-  // in all three words, decoding to the nominal curve. On the A, hardware showed
-  // that curve over-reads by 25-30%, so placeholders are rejected in favour of the
-  // measured fallback. The B has no measured fallback yet and keeps the nominal
-  // curve set above, without the stock 25C constant (see the header comment).
-  if ((page[0x16] & 0xFFFF) == 0x8000 && (page[0x17] & 0xFFFF) == 0x8000 && (page[0x18] & 0xFFFF) == 0x8000) {
     return;
   }
-  // Sanity: counts must be positive, strictly increasing and within the 12-bit range.
+
+  const uint32_t word140 = page[0x16] & 0xFFFF;
+  const uint32_t word240 = page[0x17] & 0xFFFF;
+  const uint32_t word340 = page[0x18] & 0xFFFF;
+  if (word140 == 0x8000 && word240 == 0x8000 && word340 == 0x8000) {
+    return;
+  }
+
+  const int32_t a140 = (int32_t)word140 - (int32_t)stockCalBias140;
+  const int32_t a240 = (int32_t)word240 - (int32_t)stockCalBias240;
+  const int32_t a340 = (int32_t)word340 - (int32_t)stockCalBias340;
   if (a140 < minSaneCount140 || a240 <= a140 || a340 <= a240 || a340 > 1500) {
-#ifdef MODEL_HS02B
-    useNominalCal();
-#endif
     return;
   }
-  factoryCalValid = true;
-  curveOffsetCx10 = stockCurveOffsetCx10;
+
+  adcCount140          = (uint32_t)a140;
+  adcCount240          = (uint32_t)a240;
+  adcCount340          = (uint32_t)a340;
+  factoryCalCustomized = true;
 }
+
 } // namespace
 
-// Debug-menu accessor: returns true when the stock factory calibration was found
-// and passed validation; outputs the three raw ADC counts (140C/240C/340C points).
+// Outputs the active calibration counts. The nominal stock curve is valid even when
+// the stock page is erased, contains placeholders, or has unusable custom values.
 bool hs02GetFactoryTipCal(uint32_t &a140, uint32_t &a240, uint32_t &a340) {
   if (!factoryCalChecked) {
     loadFactoryCal();
@@ -181,6 +144,7 @@ bool hs02GetFactoryTipCal(uint32_t &a140, uint32_t &a240, uint32_t &a340) {
   a140 = adcCount140;
   a240 = adcCount240;
   a340 = adcCount340;
+  (void)factoryCalCustomized;
   return factoryCalValid;
 }
 
@@ -189,40 +153,23 @@ TemperatureType_t TipThermoModel::convertuVToDegCx10(uint32_t tipuVDelta) {
     loadFactoryCal();
   }
 
-  if (factoryCalValid) {
-    // Convert IronOS uV back to stock 12-bit ADC counts (x10 for precision) by
-    // inverting the exact forward conversion used in convertTipRawADCTouV:
-    //   uV = raw * (ADC_VDD_MV * 1000 / ADC_MAX_READING) / OP_AMP_GAIN_STAGE
-    // with stockCount = raw / 8 (the x8 oversampling). The gain assumption
-    // cancels out since the same constants were used to produce tipuVDelta.
-    //   countX10 = uV * OP_AMP_GAIN_STAGE * 4096 * 10 / (ADC_VDD_MV * 1000)
-    //            = uV * (233472/33) / 10000 = uV * 0.70749 for the 57x gain stage
-    const uint32_t countX10 = (stockRawTipuV(tipuVDelta) * ((OP_AMP_GAIN_STAGE * 4096) / 33)) / 10000;
+  // Convert IronOS uV back to stock 12-bit ADC counts (x10 for precision) by
+  // inverting the exact forward conversion used in convertTipRawADCTouV:
+  //   uV = raw * (ADC_VDD_MV * 1000 / ADC_MAX_READING) / OP_AMP_GAIN_STAGE
+  // with stockCount = raw / 8 (the x8 oversampling).
+  const uint32_t countX10 = (stockRawTipuV(tipuVDelta) * ((OP_AMP_GAIN_STAGE * 4096) / 33)) / 10000;
 
-    // Stock piecewise-linear curve.
-    uint32_t tempX10;
-    if (countX10 <= adcCount140 * 10) {
-      tempX10 = (countX10 * 140) / adcCount140;
-    } else if (countX10 <= adcCount240 * 10) {
-      tempX10 = 1400 + ((countX10 - adcCount140 * 10) * 100) / (adcCount240 - adcCount140);
-    } else if (stockCount440 > adcCount340 && countX10 >= adcCount340 * 10) {
-      tempX10 = 3400 + ((countX10 - adcCount340 * 10) * 100) / (stockCount440 - adcCount340);
-    } else {
-      tempX10 = 2400 + ((countX10 - adcCount240 * 10) * 100) / (adcCount340 - adcCount240);
-    }
-    tempX10 += curveOffsetCx10;
-    // That is the ABSOLUTE tip temperature (for a calibrated unit, exactly what stock
-    // shows), but this function must return the delta above the handle; the caller adds
-    // the handle temperature back on top. That "handle" value is the MCU die sensor
-    // (~41-43C, see below), so cancel the actual value.
-    const uint32_t handleTempCx10 = getHandleTemperature(0);
-    return (tempX10 > handleTempCx10) ? (tempX10 - handleTempCx10) : 0;
+  uint32_t tempX10;
+  if (countX10 <= adcCount140 * 10) {
+    tempX10 = (countX10 * 140) / adcCount140;
+  } else if (countX10 <= adcCount240 * 10) {
+    tempX10 = 1400 + ((countX10 - adcCount140 * 10) * 100) / (adcCount240 - adcCount140);
+  } else if (stockCount440 > adcCount340 && countX10 >= adcCount340 * 10) {
+    tempX10 = 3400 + ((countX10 - adcCount340 * 10) * 100) / (stockCount440 - adcCount340);
+  } else {
+    tempX10 = 2400 + ((countX10 - adcCount240 * 10) * 100) / (adcCount340 - adcCount240);
   }
-
-  // The MCU die sensor remains around 41-43C and is not the connector's cold
-  // junction temperature. Use the measured absolute-temperature curve, then
-  // cancel the handle value which the generic caller adds back.
+  tempX10 += curveOffsetCx10;
   const uint32_t handleTempCx10 = getHandleTemperature(0);
-  const uint32_t tipTempCx10    = fallbackTipTempCx10(tipuVDelta);
-  return (tipTempCx10 > handleTempCx10) ? tipTempCx10 - handleTempCx10 : 0;
+  return (tempX10 > handleTempCx10) ? (tempX10 - handleTempCx10) : 0;
 }

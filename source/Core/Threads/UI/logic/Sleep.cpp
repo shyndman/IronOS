@@ -29,6 +29,7 @@ OperatingMode gui_SolderingSleepingMode(const ButtonState buttons, guiContext *c
   uint16_t tipTemp = getSettingValue(SettingsOptions::TemperatureInF) ? TipThermoModel::getTipInF() : TipThermoModel::getTipInC();
 
 #if defined(LCD_160x80)
+  setStatusLED(LED_COOLING_STILL_HOT);
   ui_draw_home_gauge_sleep(tipTemp);
 #else
   if (getSettingValue(SettingsOptions::DetailedSoldering)) {
@@ -38,6 +39,20 @@ OperatingMode gui_SolderingSleepingMode(const ButtonState buttons, guiContext *c
   }
 #endif
 
+#if defined(LCD_160x80)
+  if (buttons == BUTTON_OK_SHORT) {
+    return OperatingMode::SettingsMenu;
+  }
+  if (buttons == BUTTON_OK_LONG) {
+    return OperatingMode::DebugMenuReadout;
+  }
+  {
+    const bool rot = Display::getRotation();
+    if ((!rot && (buttons == BUTTON_B_SHORT || buttons == BUTTON_B_LONG)) || (rot && (buttons == BUTTON_F_SHORT || buttons == BUTTON_F_LONG))) {
+      return OperatingMode::HomeScreen;
+    }
+  }
+#endif
   if (!shouldBeSleeping()) {
     return cxt->previousMode;
   }

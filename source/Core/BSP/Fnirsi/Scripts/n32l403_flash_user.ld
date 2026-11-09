@@ -40,7 +40,7 @@ _Min_Stack_Size = 0x800; /* required amount of stack */
 /* Specify the memory areas */
 MEMORY
 {
-FLASH (rx)      : ORIGIN = 0x08005800, LENGTH = 104K /* This is actually 106K but let's reserve the last 2K for the original Fnirsi settings section */
+FLASH (rx)      : ORIGIN = 0x08005800, LENGTH = 102K /* 0x08005800..0x0801F000; 0x0801F000 is SETTINGS_START_PAGE, 0x0801F800 is stock factory cal */
 RAM (xrw)       : ORIGIN = 0x20000000, LENGTH = 24K
 }
 

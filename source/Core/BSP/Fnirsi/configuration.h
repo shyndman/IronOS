@@ -249,6 +249,6 @@
 #endif
 
 #define FLASH_LOGOADDR      (0x08000000 + (122 * 1024)) // 2KB up to address 0x0801F000 (124 * 1024)
-#define SETTINGS_START_PAGE (0x08000000 + (120 * 1024))
+#define SETTINGS_START_PAGE (0x08000000 + (124 * 1024))
 
 #define LCD_160x80          1

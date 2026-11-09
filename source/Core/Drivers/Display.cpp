@@ -53,6 +53,11 @@ void Display::initialize() {
  * Precursor is the command char that is used to select the table.
  */
 void Display::drawChar(const uint16_t charCode, const FontStyle fontStyle, const uint8_t soft_x_limit) {
+#ifdef LCD_160x80
+  (void)charCode;
+  (void)fontStyle;
+  (void)soft_x_limit;
+#else
   const uint8_t *currentFont;
   static uint8_t fontWidth, fontHeight;
   uint16_t       index;
@@ -93,6 +98,7 @@ void Display::drawChar(const uint16_t charCode, const FontStyle fontStyle, const
   const uint8_t *charPointer = currentFont + ((fontWidth * (fontHeight / 8)) * index);
   drawArea(cursor_x, cursor_y, fontWidth, fontHeight, charPointer);
   cursor_x += fontWidth;
+#endif
 }
 
 /*

@@ -105,9 +105,15 @@ public:
   // Draws a checkbox
   static void drawCheckbox(bool state) { drawSymbol((state) ? 16 : 17); }
   // Draw icons
+#ifdef LCD_160x80
+  inline static void drawUnavailableIcon() {}
+  inline static void drawRepeatOnceIcon() {}
+  inline static void drawRepeatInfIcon() {}
+#else
   inline static void drawUnavailableIcon() { DISPLAY_CLASS::drawArea(0, 40, 32, 32, UnavailableIcon); }
   inline static void drawRepeatOnceIcon() { DISPLAY_CLASS::drawArea(0, 40, 32, 32, RepeatOnce); }
   inline static void drawRepeatInfIcon() { DISPLAY_CLASS::drawArea(0, 40, 32, 32, RepeatInf); }
+#endif
   static void debugNumber(int32_t val, FontStyle fontStyle);
   static void drawHex(uint32_t x, FontStyle fontStyle, uint8_t digits);
   static void drawSymbol(uint8_t symbolID);                                                           // Used for drawing symbols of a predictable width

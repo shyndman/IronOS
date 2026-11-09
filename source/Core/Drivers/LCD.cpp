@@ -496,40 +496,11 @@ void LCD::drawRing2bpp(uint8_t cx, uint8_t cy, uint8_t r, uint8_t thickness, uin
 void LCD::drawTick2bpp(uint8_t cx, uint8_t cy, float angle, uint8_t rInner, uint8_t rOuter, uint8_t colorIndex) { plotRadialSegment(cx, cy, angle, rInner, rOuter, colorIndex); }
 
 void LCD::drawGlyph2bpp(uint16_t charCode, FontStyle fontStyle, uint8_t x, uint8_t y, uint8_t colorIndex) {
-  const uint8_t *currentFont;
-  uint8_t        fontWidth, fontHeight;
-  uint16_t       index;
-
-  if (fontStyle == FontStyle::EXTRAS) {
-    currentFont = ExtraFontChars;
-    index       = charCode;
-    fontWidth   = kSmallW;
-    fontHeight  = kSmallH;
-  } else {
-    if (charCode <= 0x01) {
-      return;
-    }
-    const bool small = (fontStyle == FontStyle::SMALL);
-    fontWidth        = small ? kSmallW : kLargeW;
-    fontHeight       = small ? kSmallH : kLargeH;
-    currentFont      = small ? FontSectionInfo.font06_start_ptr : FontSectionInfo.font12_start_ptr;
-    index            = charCode - 2;
-  }
-
-  const uint8_t *charPointer = currentFont + ((fontWidth * (fontHeight / 8)) * index);
-  for (uint8_t strip = 0; strip < fontHeight / 8; strip++) {
-    for (uint8_t col = 0; col < fontWidth; col++) {
-      const uint8_t bits = charPointer[strip * fontWidth + col];
-      if (bits == 0) {
-        continue;
-      }
-      for (uint8_t bit = 0; bit < 8; bit++) {
-        if (bits & (1 << bit)) {
-          setPixel2bpp(x + col, y + strip * 8 + bit, colorIndex);
-        }
-      }
-    }
-  }
+  (void)charCode;
+  (void)fontStyle;
+  (void)x;
+  (void)y;
+  (void)colorIndex;
 }
 
 void LCD::drawTextColor(const char *str, uint8_t x, uint8_t y, FontStyle fontStyle, uint8_t colorIndex, uint8_t maxChars) {

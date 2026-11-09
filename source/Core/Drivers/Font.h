@@ -20,6 +20,7 @@ enum class FontStyle {
 // THE MAIN FONTS ARE NO LONGER HERE, MOVED TO PYTHON AUTO GEN
 // THESE ARE ONLY THE SYMBOL FONTS
 // clang-format off
+#ifndef LCD_160x80
   const uint8_t ExtraFontChars[] = {
       // width = 12
       // height = 16
@@ -586,5 +587,6 @@ enum class FontStyle {
     #endif
     };
   #endif
+#endif /* !LCD_160x80 */
 // clang-format on
 #endif /* FONT_H_ */

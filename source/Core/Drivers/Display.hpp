@@ -143,6 +143,18 @@ public:
   static void drawBitmapColor(const uint8_t *bitmap, uint8_t width, uint8_t height, uint8_t x, uint8_t y, uint8_t colorIndex) {
     DISPLAY_CLASS::drawBitmap2bpp(bitmap, width, height, x, y, colorIndex);
   }
+  static void drawRoundedBarColor(uint8_t x, uint8_t y, uint8_t w, uint8_t h, uint8_t rampIndex) {
+    DISPLAY_CLASS::drawRoundedBar4bpp(x, y, w, h, rampIndex);
+  }
+  static void drawAaBitmapColor(const uint8_t *packed2bpp, uint8_t width, uint8_t height, int16_t x0, int16_t y0, uint8_t rampIndex, int16_t clipX0 = 0, int16_t clipX1 = DISPLAY_WIDTH) {
+    DISPLAY_CLASS::drawAaBitmap2bpp(packed2bpp, width, height, x0, y0, rampIndex, clipX0, clipX1);
+  }
+  static int16_t drawSpaceGrotesk(const char *str, int16_t x, int16_t y, uint8_t pxSize, uint8_t rampIndex, int16_t clipX0 = 0, int16_t clipX1 = DISPLAY_WIDTH) {
+    return DISPLAY_CLASS::drawSpaceGroteskText(str, x, y, pxSize, rampIndex, clipX0, clipX1);
+  }
+  static uint16_t measureSpaceGrotesk(const char *str, uint8_t pxSize) {
+    return DISPLAY_CLASS::measureSpaceGroteskText(str, pxSize);
+  }
 #endif
 
 private:

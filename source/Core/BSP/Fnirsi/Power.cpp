@@ -1,36 +1,54 @@
 #include "BSP.h"
 #include "BSP_Power.h"
-// #include "Pins.h"
-// #include "QC3.h"
-// #include "Settings.h"
-// #include "USBPD.h"
-// #include "configuration.h"
-// #include "stm32f1xx_hal.h"
+#include "FreeRTOS.h"
+#include "Settings.h"
+#include "Setup.h"
+#include "configuration.h"
+#include "task.h"
+
+static const uint8_t  kCH224KLevels[]      = {20, 15, 12, 9};
+static uint8_t        CH224KLevel           = 0;
+static bool           CH224KSettled         = false;
+static TickType_t     CH224KRequestedTick   = 0;
+static uint16_t       lastConfiguredVolts   = 0xFFFF;
+
+bool CH224KVoltageSettled(void) { return CH224KSettled; }
+
 void power_check() {
-  // #ifdef POW_PD
-  //   // Cant start QC until either PD works or fails
-  //   if (!USBPowerDelivery::negotiationComplete()) {
-  //     return;
-  //   }
-  //   if (USBPowerDelivery::negotiationHasWorked()) {
-  //     return; // We are using PD
-  //   }
-  // #endif
-  // #ifdef POW_QC
-  //   QC_resync();
-  // #endif
+  const uint16_t desiredVolts = getSettingValue(SettingsOptions::QCIdealVoltage) / 10;
+  if (desiredVolts != lastConfiguredVolts) {
+    lastConfiguredVolts = desiredVolts;
+    CH224KLevel = 3;
+    for (uint8_t i = 0; i < sizeof(kCH224KLevels) / sizeof(kCH224KLevels[0]); ++i) {
+      if (kCH224KLevels[i] <= desiredVolts) {
+        CH224KLevel = i;
+        break;
+      }
+    }
+    setCH224KVoltage(kCH224KLevels[CH224KLevel]);
+    CH224KRequestedTick = xTaskGetTickCount();
+    CH224KSettled = false;
+  }
+
+  if (CH224KSettled) {
+    return;
+  }
+  const TickType_t now = xTaskGetTickCount();
+  if (now - CH224KRequestedTick < TICKS_SECOND / 2) {
+    return;
+  }
+
+  const uint16_t requestedX10 = kCH224KLevels[CH224KLevel] * 10;
+  const uint16_t inputX10 = getInputVoltageX10(getSettingValue(SettingsOptions::VoltageDiv), 1);
+  if (inputX10 * 100 >= requestedX10 * 85 || CH224KLevel == 3) {
+    CH224KSettled = true;
+    return;
+  }
+
+  ++CH224KLevel;
+  setCH224KVoltage(kCH224KLevels[CH224KLevel]);
+  CH224KRequestedTick = now;
 }
 
-bool getIsPoweredByDCIN() {
-  // #if defined(MODEL_TS80) + defined(MODEL_TS80P) > 0
-  //   return false;
-  // #endif
-  // #ifdef MODEL_TS101
-  //   // TODO have to check what we are using
-  //   return HAL_GPIO_ReadPin(DC_SELECT_GPIO_Port, DC_SELECT_Pin) == GPIO_PIN_SET;
-  // #endif
-  // #ifdef MODEL_TS100
-  //   return true;
-  // #endif
-  return true;
-}
+// The CH224K does the PD negotiation, so IronOS sees a DC input.
+bool getIsPoweredByDCIN() { return true; }

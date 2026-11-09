@@ -247,7 +247,7 @@ void showBootLogo(void) {
     if (getButtonState() != BUTTON_NONE) {
       break;
     }
-    if ((now - lastFrameTick) >= (TICKS_10MS * (FNIRSI_LOGO_FRAME_MS / 10))) {
+    if ((now - lastFrameTick) >= FNIRSI_LOGO_FRAME_MS) {
       lastFrameTick = now;
       frame         = (uint8_t)((frame + 1) % FNIRSI_LOGO_FRAME_COUNT);
       LCD::drawIndexedImage(FNIRSI_LOGO_ANIM_X, FNIRSI_LOGO_ANIM_Y, FNIRSI_LOGO_ANIM_W, FNIRSI_LOGO_ANIM_H, fnirsiBootLogoAnimFrames[frame],

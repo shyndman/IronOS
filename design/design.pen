@@ -1,0 +1,3171 @@
+{
+  "version": "2.19",
+  "children": [
+    {
+      "type": "frame",
+      "id": "dxnLb",
+      "x": 0,
+      "y": 140,
+      "name": "Menu — Power settings",
+      "reusable": true,
+      "clip": true,
+      "width": 160,
+      "height": 80,
+      "fill": "$section-power-background",
+      "layout": "none",
+      "children": [
+        {
+          "type": "ellipse",
+          "id": "Rqwcm",
+          "x": 108,
+          "y": 17,
+          "name": "Section color",
+          "fill": "$section-power-color",
+          "width": 46,
+          "height": 46
+        },
+        {
+          "type": "text",
+          "id": "k6uvp",
+          "x": 8,
+          "y": 16,
+          "name": "Section name",
+          "fill": "$section-title-color",
+          "content": "Power\nsettings",
+          "lineHeight": "$section-title-line-height",
+          "fontFamily": "$section-title-font",
+          "fontSize": "$section-title-size",
+          "fontWeight": "600"
+        },
+        {
+          "type": "icon",
+          "id": "NZQ6t",
+          "x": 117,
+          "y": 26,
+          "name": "Section icon",
+          "width": 28,
+          "height": 28,
+          "icon": "zap",
+          "library": "lucide",
+          "fill": "$section-icon-ink"
+        }
+      ]
+    },
+    {
+      "id": "BKGUM",
+      "type": "ref",
+      "ref": "dxnLb",
+      "name": "Menu — Soldering settings",
+      "x": 200,
+      "y": 140,
+      "fill": "$section-solder-background",
+      "descendants": {
+        "Rqwcm": {
+          "fill": "$section-solder-color"
+        },
+        "k6uvp": {
+          "content": "Soldering\nsettings"
+        },
+        "NZQ6t": {
+          "icon": "flame"
+        }
+      }
+    },
+    {
+      "id": "NQrC0",
+      "type": "ref",
+      "ref": "dxnLb",
+      "name": "Menu — Sleep mode",
+      "x": 400,
+      "y": 140,
+      "fill": "$section-sleep-background",
+      "descendants": {
+        "Rqwcm": {
+          "fill": "$section-sleep-color"
+        },
+        "k6uvp": {
+          "content": "Sleep\nmode"
+        },
+        "NZQ6t": {
+          "icon": "moon-star"
+        }
+      }
+    },
+    {
+      "id": "b77cnl",
+      "type": "ref",
+      "ref": "dxnLb",
+      "name": "Menu — User interface",
+      "x": 600,
+      "y": 140,
+      "fill": "$section-ui-background",
+      "descendants": {
+        "Rqwcm": {
+          "fill": "$section-ui-color"
+        },
+        "k6uvp": {
+          "content": "User\ninterface"
+        },
+        "NZQ6t": {
+          "icon": "panels-top-left"
+        }
+      }
+    },
+    {
+      "id": "W5jxT",
+      "type": "ref",
+      "ref": "dxnLb",
+      "name": "Menu — Advanced settings",
+      "x": 800,
+      "y": 140,
+      "fill": "$section-advanced-background",
+      "descendants": {
+        "Rqwcm": {
+          "fill": "$section-advanced-color"
+        },
+        "k6uvp": {
+          "content": "Advanced\nsettings"
+        },
+        "NZQ6t": {
+          "icon": "circuit-board"
+        }
+      }
+    },
+    {
+      "type": "frame",
+      "id": "gCd4E",
+      "x": 0,
+      "y": 260,
+      "name": "Power · Power source",
+      "reusable": true,
+      "clip": true,
+      "width": 160,
+      "height": 80,
+      "fill": "$section-power-background",
+      "layout": "none",
+      "children": [
+        {
+          "type": "rectangle",
+          "id": "CBa2N",
+          "x": 0,
+          "y": 0,
+          "name": "Category color",
+          "fill": "$section-power-color",
+          "width": 3,
+          "height": 80
+        },
+        {
+          "type": "text",
+          "id": "xIE12",
+          "x": 11,
+          "y": 7,
+          "name": "Setting label",
+          "fill": "$settings-text-color",
+          "content": "Power source",
+          "lineHeight": "$settings-label-line-height",
+          "fontFamily": "$settings-label-font",
+          "fontSize": "$settings-label-size",
+          "fontWeight": "600"
+        },
+        {
+          "type": "text",
+          "id": "Xf4No",
+          "x": 34,
+          "y": 46,
+          "name": "Sample value",
+          "fill": "$section-power-color",
+          "content": "3 cells",
+          "fontFamily": "$settings-value-font",
+          "fontSize": "$settings-value-size",
+          "fontWeight": "600"
+        },
+        {
+          "type": "icon",
+          "id": "RIgVF",
+          "x": 10,
+          "y": 50,
+          "name": "Previous value",
+          "width": 16,
+          "height": 16,
+          "icon": "chevron-left",
+          "library": "lucide",
+          "fill": "$section-power-color"
+        },
+        {
+          "type": "icon",
+          "id": "vFjC9",
+          "x": 137,
+          "y": 50,
+          "name": "Next value",
+          "width": 16,
+          "height": 16,
+          "icon": "chevron-right",
+          "library": "lucide",
+          "fill": "$section-power-color"
+        },
+        {
+          "type": "rectangle",
+          "cornerRadius": 3,
+          "id": "p2uR8J",
+          "x": 13,
+          "y": 51,
+          "name": "Toggle box",
+          "enabled": false,
+          "width": 15,
+          "height": 15,
+          "stroke": "$section-power-color",
+          "strokeWidth": 1
+        },
+        {
+          "type": "icon",
+          "id": "FSkW3",
+          "x": 13,
+          "y": 51,
+          "name": "Toggle check",
+          "enabled": false,
+          "width": 15,
+          "height": 15,
+          "icon": "check",
+          "library": "lucide",
+          "fill": "$section-power-color"
+        }
+      ]
+    },
+    {
+      "id": "hWp9F",
+      "type": "ref",
+      "ref": "gCd4E",
+      "name": "Power · Minimum voltage",
+      "x": 0,
+      "y": 360,
+      "fill": "$section-power-background",
+      "descendants": {
+        "CBa2N": {
+          "fill": "$section-power-color"
+        },
+        "xIE12": {
+          "content": "Minimum voltage"
+        },
+        "Xf4No": {
+          "content": "3.3 V",
+          "fill": "$section-power-color",
+          "x": 34
+        },
+        "RIgVF": {
+          "fill": "$section-power-color",
+          "enabled": true
+        },
+        "vFjC9": {
+          "fill": "$section-power-color",
+          "enabled": true
+        },
+        "p2uR8J": {
+          "stroke": "$section-power-color",
+          "enabled": false
+        },
+        "FSkW3": {
+          "fill": "$section-power-color",
+          "enabled": false
+        }
+      }
+    },
+    {
+      "id": "u9eTG",
+      "type": "ref",
+      "ref": "gCd4E",
+      "name": "Power · QC voltage",
+      "x": 0,
+      "y": 460,
+      "fill": "$section-power-background",
+      "descendants": {
+        "CBa2N": {
+          "fill": "$section-power-color"
+        },
+        "xIE12": {
+          "content": "QC voltage"
+        },
+        "Xf4No": {
+          "content": "20 V",
+          "fill": "$section-power-color",
+          "x": 34
+        },
+        "RIgVF": {
+          "fill": "$section-power-color",
+          "enabled": true
+        },
+        "vFjC9": {
+          "fill": "$section-power-color",
+          "enabled": true
+        },
+        "p2uR8J": {
+          "stroke": "$section-power-color",
+          "enabled": false
+        },
+        "FSkW3": {
+          "fill": "$section-power-color",
+          "enabled": false
+        }
+      }
+    },
+    {
+      "id": "U7M7I",
+      "type": "ref",
+      "ref": "gCd4E",
+      "name": "Soldering · Boost temp",
+      "x": 200,
+      "y": 260,
+      "fill": "$section-solder-background",
+      "descendants": {
+        "CBa2N": {
+          "fill": "$section-solder-color"
+        },
+        "xIE12": {
+          "content": "Boost temp"
+        },
+        "Xf4No": {
+          "content": "420 °C",
+          "fill": "$section-solder-color",
+          "x": 34
+        },
+        "RIgVF": {
+          "fill": "$section-solder-color",
+          "enabled": true
+        },
+        "vFjC9": {
+          "fill": "$section-solder-color",
+          "enabled": true
+        },
+        "p2uR8J": {
+          "stroke": "$section-solder-color",
+          "enabled": false
+        },
+        "FSkW3": {
+          "fill": "$section-solder-color",
+          "enabled": false
+        }
+      }
+    },
+    {
+      "id": "C1Zpjc",
+      "type": "ref",
+      "ref": "gCd4E",
+      "name": "Soldering · Start-up behavior",
+      "x": 200,
+      "y": 360,
+      "fill": "$section-solder-background",
+      "descendants": {
+        "CBa2N": {
+          "fill": "$section-solder-color"
+        },
+        "xIE12": {
+          "content": "Start-up behavior"
+        },
+        "Xf4No": {
+          "content": "Off",
+          "fill": "$section-solder-color",
+          "x": 34
+        },
+        "RIgVF": {
+          "fill": "$section-solder-color",
+          "enabled": true
+        },
+        "vFjC9": {
+          "fill": "$section-solder-color",
+          "enabled": true
+        },
+        "p2uR8J": {
+          "stroke": "$section-solder-color",
+          "enabled": false
+        },
+        "FSkW3": {
+          "fill": "$section-solder-color",
+          "enabled": false
+        }
+      }
+    },
+    {
+      "id": "ZO4Pu",
+      "type": "ref",
+      "ref": "gCd4E",
+      "name": "Soldering · Temp change short",
+      "x": 200,
+      "y": 460,
+      "fill": "$section-solder-background",
+      "descendants": {
+        "CBa2N": {
+          "fill": "$section-solder-color"
+        },
+        "xIE12": {
+          "content": "Temp change\nshort",
+          "x": 11,
+          "y": 5
+        },
+        "Xf4No": {
+          "content": "1 °C",
+          "fill": "$section-solder-color",
+          "x": 34,
+          "y": 48
+        },
+        "RIgVF": {
+          "fill": "$section-solder-color",
+          "enabled": true,
+          "y": 52
+        },
+        "vFjC9": {
+          "fill": "$section-solder-color",
+          "enabled": true,
+          "y": 52
+        },
+        "p2uR8J": {
+          "stroke": "$section-solder-color",
+          "enabled": false,
+          "y": 53
+        },
+        "FSkW3": {
+          "fill": "$section-solder-color",
+          "enabled": false,
+          "y": 53
+        }
+      }
+    },
+    {
+      "id": "KwCyu",
+      "type": "ref",
+      "ref": "gCd4E",
+      "name": "Soldering · Temp change long",
+      "x": 200,
+      "y": 560,
+      "fill": "$section-solder-background",
+      "descendants": {
+        "CBa2N": {
+          "fill": "$section-solder-color"
+        },
+        "xIE12": {
+          "content": "Temp change\nlong",
+          "x": 11,
+          "y": 5
+        },
+        "Xf4No": {
+          "content": "10 °C",
+          "fill": "$section-solder-color",
+          "x": 34,
+          "y": 48
+        },
+        "RIgVF": {
+          "fill": "$section-solder-color",
+          "enabled": true,
+          "y": 52
+        },
+        "vFjC9": {
+          "fill": "$section-solder-color",
+          "enabled": true,
+          "y": 52
+        },
+        "p2uR8J": {
+          "stroke": "$section-solder-color",
+          "enabled": false,
+          "y": 53
+        },
+        "FSkW3": {
+          "fill": "$section-solder-color",
+          "enabled": false,
+          "y": 53
+        }
+      }
+    },
+    {
+      "id": "ueCES",
+      "type": "ref",
+      "ref": "gCd4E",
+      "name": "Soldering · Allow locking buttons",
+      "x": 200,
+      "y": 660,
+      "fill": "$section-solder-background",
+      "descendants": {
+        "CBa2N": {
+          "fill": "$section-solder-color"
+        },
+        "xIE12": {
+          "content": "Allow locking\nbuttons",
+          "x": 11,
+          "y": 5
+        },
+        "Xf4No": {
+          "content": "Off",
+          "fill": "$section-solder-color",
+          "x": 34,
+          "y": 48
+        },
+        "RIgVF": {
+          "fill": "$section-solder-color",
+          "enabled": true,
+          "y": 52
+        },
+        "vFjC9": {
+          "fill": "$section-solder-color",
+          "enabled": true,
+          "y": 52
+        },
+        "p2uR8J": {
+          "stroke": "$section-solder-color",
+          "enabled": false,
+          "y": 53
+        },
+        "FSkW3": {
+          "fill": "$section-solder-color",
+          "enabled": false,
+          "y": 53
+        }
+      }
+    },
+    {
+      "id": "Q3H3xE",
+      "type": "ref",
+      "ref": "gCd4E",
+      "name": "Sleep · Motion sensitivity",
+      "x": 400,
+      "y": 260,
+      "fill": "$section-sleep-background",
+      "descendants": {
+        "CBa2N": {
+          "fill": "$section-sleep-color"
+        },
+        "xIE12": {
+          "content": "Motion sensitivity"
+        },
+        "Xf4No": {
+          "content": "7",
+          "fill": "$section-sleep-color",
+          "x": 34
+        },
+        "RIgVF": {
+          "fill": "$section-sleep-color",
+          "enabled": true
+        },
+        "vFjC9": {
+          "fill": "$section-sleep-color",
+          "enabled": true
+        },
+        "p2uR8J": {
+          "stroke": "$section-sleep-color",
+          "enabled": false
+        },
+        "FSkW3": {
+          "fill": "$section-sleep-color",
+          "enabled": false
+        }
+      }
+    },
+    {
+      "id": "I7OKw",
+      "type": "ref",
+      "ref": "gCd4E",
+      "name": "Sleep · Sleep temp",
+      "x": 400,
+      "y": 360,
+      "fill": "$section-sleep-background",
+      "descendants": {
+        "CBa2N": {
+          "fill": "$section-sleep-color"
+        },
+        "xIE12": {
+          "content": "Sleep temp"
+        },
+        "Xf4No": {
+          "content": "150 °C",
+          "fill": "$section-sleep-color",
+          "x": 34
+        },
+        "RIgVF": {
+          "fill": "$section-sleep-color",
+          "enabled": true
+        },
+        "vFjC9": {
+          "fill": "$section-sleep-color",
+          "enabled": true
+        },
+        "p2uR8J": {
+          "stroke": "$section-sleep-color",
+          "enabled": false
+        },
+        "FSkW3": {
+          "fill": "$section-sleep-color",
+          "enabled": false
+        }
+      }
+    },
+    {
+      "id": "s5I3a4",
+      "type": "ref",
+      "ref": "gCd4E",
+      "name": "Sleep · Sleep timeout",
+      "x": 400,
+      "y": 460,
+      "fill": "$section-sleep-background",
+      "descendants": {
+        "CBa2N": {
+          "fill": "$section-sleep-color"
+        },
+        "xIE12": {
+          "content": "Sleep timeout"
+        },
+        "Xf4No": {
+          "content": "50 s",
+          "fill": "$section-sleep-color",
+          "x": 34
+        },
+        "RIgVF": {
+          "fill": "$section-sleep-color",
+          "enabled": true
+        },
+        "vFjC9": {
+          "fill": "$section-sleep-color",
+          "enabled": true
+        },
+        "p2uR8J": {
+          "stroke": "$section-sleep-color",
+          "enabled": false
+        },
+        "FSkW3": {
+          "fill": "$section-sleep-color",
+          "enabled": false
+        }
+      }
+    },
+    {
+      "id": "NS7XJ",
+      "type": "ref",
+      "ref": "gCd4E",
+      "name": "Sleep · Shutdown timeout",
+      "x": 400,
+      "y": 560,
+      "fill": "$section-sleep-background",
+      "descendants": {
+        "CBa2N": {
+          "fill": "$section-sleep-color"
+        },
+        "xIE12": {
+          "content": "Shutdown timeout"
+        },
+        "Xf4No": {
+          "content": "10 min",
+          "fill": "$section-sleep-color",
+          "x": 34
+        },
+        "RIgVF": {
+          "fill": "$section-sleep-color",
+          "enabled": true
+        },
+        "vFjC9": {
+          "fill": "$section-sleep-color",
+          "enabled": true
+        },
+        "p2uR8J": {
+          "stroke": "$section-sleep-color",
+          "enabled": false
+        },
+        "FSkW3": {
+          "fill": "$section-sleep-color",
+          "enabled": false
+        }
+      }
+    },
+    {
+      "id": "RNlPp",
+      "type": "ref",
+      "ref": "gCd4E",
+      "name": "User interface · Temperature unit",
+      "x": 600,
+      "y": 260,
+      "fill": "$section-ui-background",
+      "descendants": {
+        "CBa2N": {
+          "fill": "$section-ui-color"
+        },
+        "xIE12": {
+          "content": "Temperature unit"
+        },
+        "Xf4No": {
+          "content": "°C",
+          "fill": "$section-ui-color",
+          "x": 34
+        },
+        "RIgVF": {
+          "fill": "$section-ui-color",
+          "enabled": true
+        },
+        "vFjC9": {
+          "fill": "$section-ui-color",
+          "enabled": true
+        },
+        "p2uR8J": {
+          "stroke": "$section-ui-color",
+          "enabled": false
+        },
+        "FSkW3": {
+          "fill": "$section-ui-color",
+          "enabled": false
+        }
+      }
+    },
+    {
+      "id": "Ft37M",
+      "type": "ref",
+      "ref": "gCd4E",
+      "name": "User interface · Display orientation",
+      "x": 600,
+      "y": 360,
+      "fill": "$section-ui-background",
+      "descendants": {
+        "CBa2N": {
+          "fill": "$section-ui-color"
+        },
+        "xIE12": {
+          "content": "Display orientation"
+        },
+        "Xf4No": {
+          "content": "Automatic",
+          "fill": "$section-ui-color",
+          "x": 34
+        },
+        "RIgVF": {
+          "fill": "$section-ui-color",
+          "enabled": true
+        },
+        "vFjC9": {
+          "fill": "$section-ui-color",
+          "enabled": true
+        },
+        "p2uR8J": {
+          "stroke": "$section-ui-color",
+          "enabled": false
+        },
+        "FSkW3": {
+          "fill": "$section-ui-color",
+          "enabled": false
+        }
+      }
+    },
+    {
+      "id": "MQrTB",
+      "type": "ref",
+      "ref": "gCd4E",
+      "name": "User interface · Cooldown flashing",
+      "x": 600,
+      "y": 460,
+      "fill": "$section-ui-background",
+      "descendants": {
+        "CBa2N": {
+          "fill": "$section-ui-color"
+        },
+        "xIE12": {
+          "content": "Cooldown flashing"
+        },
+        "Xf4No": {
+          "content": "Off",
+          "fill": "$section-ui-color",
+          "x": 35
+        },
+        "RIgVF": {
+          "fill": "$section-ui-color",
+          "enabled": false
+        },
+        "vFjC9": {
+          "fill": "$section-ui-color",
+          "enabled": false
+        },
+        "p2uR8J": {
+          "stroke": "$section-ui-color",
+          "enabled": true
+        },
+        "FSkW3": {
+          "fill": "$section-ui-color",
+          "enabled": false
+        }
+      }
+    },
+    {
+      "id": "sxIow",
+      "type": "ref",
+      "ref": "gCd4E",
+      "name": "User interface · Scrolling speed",
+      "x": 600,
+      "y": 560,
+      "fill": "$section-ui-background",
+      "descendants": {
+        "CBa2N": {
+          "fill": "$section-ui-color"
+        },
+        "xIE12": {
+          "content": "Scrolling speed"
+        },
+        "Xf4No": {
+          "content": "Slow",
+          "fill": "$section-ui-color",
+          "x": 34
+        },
+        "RIgVF": {
+          "fill": "$section-ui-color",
+          "enabled": true
+        },
+        "vFjC9": {
+          "fill": "$section-ui-color",
+          "enabled": true
+        },
+        "p2uR8J": {
+          "stroke": "$section-ui-color",
+          "enabled": false
+        },
+        "FSkW3": {
+          "fill": "$section-ui-color",
+          "enabled": false
+        }
+      }
+    },
+    {
+      "id": "qr1Pb",
+      "type": "ref",
+      "ref": "gCd4E",
+      "name": "User interface · Swap + − keys",
+      "x": 600,
+      "y": 660,
+      "fill": "$section-ui-background",
+      "descendants": {
+        "CBa2N": {
+          "fill": "$section-ui-color"
+        },
+        "xIE12": {
+          "content": "Swap + − keys"
+        },
+        "Xf4No": {
+          "content": "Off",
+          "fill": "$section-ui-color",
+          "x": 35
+        },
+        "RIgVF": {
+          "fill": "$section-ui-color",
+          "enabled": false
+        },
+        "vFjC9": {
+          "fill": "$section-ui-color",
+          "enabled": false
+        },
+        "p2uR8J": {
+          "stroke": "$section-ui-color",
+          "enabled": true
+        },
+        "FSkW3": {
+          "fill": "$section-ui-color",
+          "enabled": false
+        }
+      }
+    },
+    {
+      "id": "ZnU1B",
+      "type": "ref",
+      "ref": "gCd4E",
+      "name": "User interface · Swap < > keys",
+      "x": 600,
+      "y": 760,
+      "fill": "$section-ui-background",
+      "descendants": {
+        "CBa2N": {
+          "fill": "$section-ui-color"
+        },
+        "xIE12": {
+          "content": "Swap < > keys"
+        },
+        "Xf4No": {
+          "content": "Off",
+          "fill": "$section-ui-color",
+          "x": 35
+        },
+        "RIgVF": {
+          "fill": "$section-ui-color",
+          "enabled": false
+        },
+        "vFjC9": {
+          "fill": "$section-ui-color",
+          "enabled": false
+        },
+        "p2uR8J": {
+          "stroke": "$section-ui-color",
+          "enabled": true
+        },
+        "FSkW3": {
+          "fill": "$section-ui-color",
+          "enabled": false
+        }
+      }
+    },
+    {
+      "id": "U33R6j",
+      "type": "ref",
+      "ref": "gCd4E",
+      "name": "User interface · Screen brightness",
+      "x": 600,
+      "y": 860,
+      "fill": "$section-ui-background",
+      "descendants": {
+        "CBa2N": {
+          "fill": "$section-ui-color"
+        },
+        "xIE12": {
+          "content": "Screen brightness"
+        },
+        "Xf4No": {
+          "content": "5",
+          "fill": "$section-ui-color",
+          "x": 34
+        },
+        "RIgVF": {
+          "fill": "$section-ui-color",
+          "enabled": true
+        },
+        "vFjC9": {
+          "fill": "$section-ui-color",
+          "enabled": true
+        },
+        "p2uR8J": {
+          "stroke": "$section-ui-color",
+          "enabled": false
+        },
+        "FSkW3": {
+          "fill": "$section-ui-color",
+          "enabled": false
+        }
+      }
+    },
+    {
+      "id": "J7xMv",
+      "type": "ref",
+      "ref": "gCd4E",
+      "name": "User interface · Boot logo duration",
+      "x": 600,
+      "y": 960,
+      "fill": "$section-ui-background",
+      "descendants": {
+        "CBa2N": {
+          "fill": "$section-ui-color"
+        },
+        "xIE12": {
+          "content": "Boot logo duration"
+        },
+        "Xf4No": {
+          "content": "1 s",
+          "fill": "$section-ui-color",
+          "x": 34
+        },
+        "RIgVF": {
+          "fill": "$section-ui-color",
+          "enabled": true
+        },
+        "vFjC9": {
+          "fill": "$section-ui-color",
+          "enabled": true
+        },
+        "p2uR8J": {
+          "stroke": "$section-ui-color",
+          "enabled": false
+        },
+        "FSkW3": {
+          "fill": "$section-ui-color",
+          "enabled": false
+        }
+      }
+    },
+    {
+      "id": "qjWKp",
+      "type": "ref",
+      "ref": "gCd4E",
+      "name": "Advanced · Power limit",
+      "x": 800,
+      "y": 260,
+      "fill": "$section-advanced-background",
+      "descendants": {
+        "CBa2N": {
+          "fill": "$section-advanced-color"
+        },
+        "xIE12": {
+          "content": "Power limit"
+        },
+        "Xf4No": {
+          "content": "60 W",
+          "fill": "$section-advanced-color",
+          "x": 34
+        },
+        "RIgVF": {
+          "fill": "$section-advanced-color",
+          "enabled": true
+        },
+        "vFjC9": {
+          "fill": "$section-advanced-color",
+          "enabled": true
+        },
+        "p2uR8J": {
+          "stroke": "$section-advanced-color",
+          "enabled": false
+        },
+        "FSkW3": {
+          "fill": "$section-advanced-color",
+          "enabled": false
+        }
+      }
+    },
+    {
+      "id": "d0HIxf",
+      "type": "ref",
+      "ref": "gCd4E",
+      "name": "Advanced · Calibrate CJC at next boot",
+      "x": 800,
+      "y": 360,
+      "fill": "$section-advanced-background",
+      "descendants": {
+        "CBa2N": {
+          "fill": "$section-advanced-color"
+        },
+        "xIE12": {
+          "content": "Calibrate CJC\nat next boot",
+          "x": 11,
+          "y": 5
+        },
+        "Xf4No": {
+          "content": "Off",
+          "fill": "$section-advanced-color",
+          "x": 35,
+          "y": 48
+        },
+        "RIgVF": {
+          "fill": "$section-advanced-color",
+          "enabled": false,
+          "y": 52
+        },
+        "vFjC9": {
+          "fill": "$section-advanced-color",
+          "enabled": false,
+          "y": 52
+        },
+        "p2uR8J": {
+          "stroke": "$section-advanced-color",
+          "enabled": true,
+          "y": 53
+        },
+        "FSkW3": {
+          "fill": "$section-advanced-color",
+          "enabled": false,
+          "y": 53
+        }
+      }
+    },
+    {
+      "id": "U2SQT0",
+      "type": "ref",
+      "ref": "gCd4E",
+      "name": "Advanced · Calibrate input voltage",
+      "x": 800,
+      "y": 460,
+      "fill": "$section-advanced-background",
+      "descendants": {
+        "CBa2N": {
+          "fill": "$section-advanced-color"
+        },
+        "xIE12": {
+          "content": "Calibrate input\nvoltage",
+          "x": 11,
+          "y": 5
+        },
+        "Xf4No": {
+          "content": "Calibrate",
+          "fill": "$section-advanced-color",
+          "x": 11,
+          "y": 48
+        },
+        "RIgVF": {
+          "fill": "$section-advanced-color",
+          "enabled": false,
+          "y": 52
+        },
+        "vFjC9": {
+          "fill": "$section-advanced-color",
+          "enabled": true,
+          "y": 52
+        },
+        "p2uR8J": {
+          "stroke": "$section-advanced-color",
+          "enabled": false,
+          "y": 53
+        },
+        "FSkW3": {
+          "fill": "$section-advanced-color",
+          "enabled": false,
+          "y": 53
+        }
+      }
+    },
+    {
+      "id": "w5gHxo",
+      "type": "ref",
+      "ref": "gCd4E",
+      "name": "Advanced · Power pulse",
+      "x": 800,
+      "y": 560,
+      "fill": "$section-advanced-background",
+      "descendants": {
+        "CBa2N": {
+          "fill": "$section-advanced-color"
+        },
+        "xIE12": {
+          "content": "Power pulse"
+        },
+        "Xf4No": {
+          "content": "0.5 W",
+          "fill": "$section-advanced-color",
+          "x": 34
+        },
+        "RIgVF": {
+          "fill": "$section-advanced-color",
+          "enabled": true
+        },
+        "vFjC9": {
+          "fill": "$section-advanced-color",
+          "enabled": true
+        },
+        "p2uR8J": {
+          "stroke": "$section-advanced-color",
+          "enabled": false
+        },
+        "FSkW3": {
+          "fill": "$section-advanced-color",
+          "enabled": false
+        }
+      }
+    },
+    {
+      "id": "Sm5m2",
+      "type": "ref",
+      "ref": "gCd4E",
+      "name": "Advanced · Power pulse delay",
+      "x": 800,
+      "y": 660,
+      "fill": "$section-advanced-background",
+      "descendants": {
+        "CBa2N": {
+          "fill": "$section-advanced-color"
+        },
+        "xIE12": {
+          "content": "Power pulse delay"
+        },
+        "Xf4No": {
+          "content": "10 s",
+          "fill": "$section-advanced-color",
+          "x": 34
+        },
+        "RIgVF": {
+          "fill": "$section-advanced-color",
+          "enabled": true
+        },
+        "vFjC9": {
+          "fill": "$section-advanced-color",
+          "enabled": true
+        },
+        "p2uR8J": {
+          "stroke": "$section-advanced-color",
+          "enabled": false
+        },
+        "FSkW3": {
+          "fill": "$section-advanced-color",
+          "enabled": false
+        }
+      }
+    },
+    {
+      "id": "a61Yaa",
+      "type": "ref",
+      "ref": "gCd4E",
+      "name": "Advanced · Power pulse duration",
+      "x": 800,
+      "y": 760,
+      "fill": "$section-advanced-background",
+      "descendants": {
+        "CBa2N": {
+          "fill": "$section-advanced-color"
+        },
+        "xIE12": {
+          "content": "Power pulse\nduration",
+          "x": 11,
+          "y": 5
+        },
+        "Xf4No": {
+          "content": "250 ms",
+          "fill": "$section-advanced-color",
+          "x": 34,
+          "y": 48
+        },
+        "RIgVF": {
+          "fill": "$section-advanced-color",
+          "enabled": true,
+          "y": 52
+        },
+        "vFjC9": {
+          "fill": "$section-advanced-color",
+          "enabled": true,
+          "y": 52
+        },
+        "p2uR8J": {
+          "stroke": "$section-advanced-color",
+          "enabled": false,
+          "y": 53
+        },
+        "FSkW3": {
+          "fill": "$section-advanced-color",
+          "enabled": false,
+          "y": 53
+        }
+      }
+    },
+    {
+      "id": "DzCAr",
+      "type": "ref",
+      "ref": "gCd4E",
+      "name": "Advanced · Restore default settings",
+      "x": 800,
+      "y": 860,
+      "fill": "$section-advanced-background",
+      "descendants": {
+        "CBa2N": {
+          "fill": "$section-advanced-color"
+        },
+        "xIE12": {
+          "content": "Restore default\nsettings",
+          "x": 11,
+          "y": 5
+        },
+        "Xf4No": {
+          "content": "Reset",
+          "fill": "$section-advanced-color",
+          "x": 11,
+          "y": 48
+        },
+        "RIgVF": {
+          "fill": "$section-advanced-color",
+          "enabled": false,
+          "y": 52
+        },
+        "vFjC9": {
+          "fill": "$section-advanced-color",
+          "enabled": true,
+          "y": 52
+        },
+        "p2uR8J": {
+          "stroke": "$section-advanced-color",
+          "enabled": false,
+          "y": 53
+        },
+        "FSkW3": {
+          "fill": "$section-advanced-color",
+          "enabled": false,
+          "y": 53
+        }
+      }
+    },
+    {
+      "type": "frame",
+      "id": "Q55Pm",
+      "x": -3235,
+      "y": -366,
+      "name": "Legacy Home States",
+      "clip": true,
+      "width": 2547,
+      "height": 240,
+      "fill": "#ffffff4d",
+      "layout": "none",
+      "children": [
+        {
+          "type": "frame",
+          "id": "oZLf6",
+          "x": 79,
+          "y": 83,
+          "name": "Home — idle",
+          "reusable": true,
+          "clip": true,
+          "width": 160,
+          "height": 80,
+          "fill": "$home-background",
+          "layout": "none",
+          "children": [
+            {
+              "type": "text",
+              "id": "Eb3J6",
+              "x": 6,
+              "y": 3,
+              "name": "Input voltage",
+              "fill": "$home-muted",
+              "content": "DC 24.0V",
+              "fontFamily": "$home-label-font",
+              "fontSize": "$home-label-size",
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "jqorx",
+              "x": 99,
+              "y": 3,
+              "name": "Tip sensor",
+              "fill": "$home-muted",
+              "content": "TIP 1000µV",
+              "fontFamily": "$home-label-font",
+              "fontSize": "$home-label-size",
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "tBIBm",
+              "x": 54,
+              "y": 14,
+              "name": "Tip temperature",
+              "fill": "$home-ink",
+              "content": "025",
+              "fontFamily": "$home-number-font",
+              "fontSize": "$home-number-size",
+              "fontWeight": "600"
+            },
+            {
+              "type": "text",
+              "id": "t1TXdF",
+              "x": 62,
+              "y": 45,
+              "name": "Set temperature",
+              "fill": "$home-muted",
+              "content": "SET 320",
+              "fontFamily": "$home-label-font",
+              "fontSize": "$home-label-size",
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "KG2Vv",
+              "x": 112,
+              "y": 62,
+              "name": "Ready status",
+              "fill": "$home-accent",
+              "content": "READY",
+              "fontFamily": "$home-status-font",
+              "fontSize": "$home-status-size",
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "v21NF",
+              "x": 6,
+              "y": 62,
+              "name": "Power",
+              "enabled": false,
+              "fill": "$home-heating-accent",
+              "content": "15.0W",
+              "fontFamily": "$home-status-font",
+              "fontSize": "$home-status-size",
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "ZnUuh",
+              "x": 104,
+              "y": 62,
+              "name": "Sleep countdown",
+              "enabled": false,
+              "fill": "$home-ink",
+              "content": "SLEEP 2m",
+              "fontFamily": "$home-status-font",
+              "fontSize": "$home-status-size",
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "ych8G",
+              "x": 49,
+              "y": 62,
+              "name": "Sleep status",
+              "enabled": false,
+              "fill": "$home-sleep-muted",
+              "content": "SLEEP 24.0V",
+              "fontFamily": "$home-status-font",
+              "fontSize": "$home-status-size",
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "id": "m6FPV",
+          "type": "ref",
+          "ref": "oZLf6",
+          "name": "Home — soldering",
+          "x": 279,
+          "y": 83,
+          "fill": "$home-solder-background",
+          "descendants": {
+            "Eb3J6": {
+              "fill": "$home-solder-muted"
+            },
+            "jqorx": {
+              "fill": "$home-solder-muted",
+              "content": "TIP 13000µV",
+              "x": 93
+            },
+            "tBIBm": {
+              "content": "320"
+            },
+            "t1TXdF": {
+              "content": "SET 320",
+              "fill": "$home-solder-muted"
+            },
+            "KG2Vv": {
+              "enabled": false
+            },
+            "v21NF": {
+              "enabled": true,
+              "content": "15.0W"
+            },
+            "ZnUuh": {
+              "enabled": true
+            }
+          }
+        },
+        {
+          "id": "w8Ewql",
+          "type": "ref",
+          "ref": "oZLf6",
+          "name": "Home — boost",
+          "x": 479,
+          "y": 83,
+          "fill": "$home-boost-background",
+          "descendants": {
+            "Eb3J6": {
+              "fill": "$home-boost-muted"
+            },
+            "jqorx": {
+              "fill": "$home-boost-muted",
+              "content": "TIP 15500µV",
+              "x": 93
+            },
+            "tBIBm": {
+              "content": "380"
+            },
+            "t1TXdF": {
+              "content": "BOOST",
+              "fill": "$home-heating-accent"
+            },
+            "KG2Vv": {
+              "enabled": false
+            },
+            "v21NF": {
+              "enabled": true,
+              "content": "35.0W"
+            },
+            "ZnUuh": {
+              "enabled": true
+            }
+          }
+        },
+        {
+          "id": "V07gk",
+          "type": "ref",
+          "ref": "oZLf6",
+          "name": "Home — sleep",
+          "x": 679,
+          "y": 83,
+          "fill": "$home-sleep-background",
+          "descendants": {
+            "Eb3J6": {
+              "enabled": false
+            },
+            "jqorx": {
+              "enabled": false
+            },
+            "tBIBm": {
+              "content": "150"
+            },
+            "t1TXdF": {
+              "enabled": false
+            },
+            "KG2Vv": {
+              "enabled": false
+            },
+            "ych8G": {
+              "enabled": true
+            }
+          }
+        },
+        {
+          "id": "DD6GS",
+          "type": "ref",
+          "ref": "oZLf6",
+          "name": "Home — heating up",
+          "x": 879,
+          "y": 83,
+          "fill": "$home-solder-background",
+          "descendants": {
+            "Eb3J6": {
+              "fill": "$home-solder-muted"
+            },
+            "jqorx": {
+              "fill": "$home-solder-muted",
+              "content": "TIP 6500µV",
+              "x": 93
+            },
+            "tBIBm": {
+              "content": "185"
+            },
+            "t1TXdF": {
+              "content": "SET 320",
+              "fill": "$home-solder-muted"
+            },
+            "KG2Vv": {
+              "enabled": false
+            },
+            "v21NF": {
+              "enabled": true,
+              "content": "45.0W"
+            },
+            "ZnUuh": {
+              "enabled": true,
+              "content": "SLEEP 5m"
+            }
+          }
+        },
+        {
+          "id": "jMrZf",
+          "type": "ref",
+          "ref": "oZLf6",
+          "name": "Home — sleep imminent",
+          "x": 1079,
+          "y": 83,
+          "fill": "$home-solder-background",
+          "descendants": {
+            "Eb3J6": {
+              "fill": "$home-solder-muted"
+            },
+            "jqorx": {
+              "fill": "$home-solder-muted",
+              "content": "TIP 13000µV",
+              "x": 93
+            },
+            "tBIBm": {
+              "content": "319"
+            },
+            "t1TXdF": {
+              "content": "SET 320",
+              "fill": "$home-solder-muted"
+            },
+            "KG2Vv": {
+              "enabled": false
+            },
+            "v21NF": {
+              "enabled": true,
+              "content": "8.0W"
+            },
+            "ZnUuh": {
+              "enabled": true,
+              "content": "SLEEP 30s",
+              "x": 98
+            }
+          }
+        },
+        {
+          "id": "kHYmN",
+          "type": "ref",
+          "ref": "oZLf6",
+          "name": "Home — soldering without sleep timer",
+          "x": 1279,
+          "y": 83,
+          "fill": "$home-solder-background",
+          "descendants": {
+            "Eb3J6": {
+              "fill": "$home-solder-muted"
+            },
+            "jqorx": {
+              "fill": "$home-solder-muted",
+              "content": "TIP 13000µV",
+              "x": 93
+            },
+            "tBIBm": {
+              "content": "320"
+            },
+            "t1TXdF": {
+              "content": "SET 320",
+              "fill": "$home-solder-muted"
+            },
+            "KG2Vv": {
+              "enabled": false
+            },
+            "v21NF": {
+              "enabled": true,
+              "content": "12.0W"
+            }
+          }
+        },
+        {
+          "id": "jQngc",
+          "type": "ref",
+          "ref": "oZLf6",
+          "name": "Home — idle, cooling",
+          "x": 1479,
+          "y": 83,
+          "fill": "$home-background",
+          "descendants": {
+            "jqorx": {
+              "content": "TIP 6300µV",
+              "x": 99
+            },
+            "tBIBm": {
+              "content": "180"
+            }
+          }
+        },
+        {
+          "id": "YccKf",
+          "type": "ref",
+          "ref": "oZLf6",
+          "name": "Home — sleep, cooling",
+          "x": 1679,
+          "y": 83,
+          "fill": "$home-sleep-background",
+          "descendants": {
+            "Eb3J6": {
+              "enabled": false
+            },
+            "jqorx": {
+              "enabled": false
+            },
+            "tBIBm": {
+              "content": "250"
+            },
+            "t1TXdF": {
+              "enabled": false
+            },
+            "KG2Vv": {
+              "enabled": false
+            },
+            "ych8G": {
+              "enabled": true
+            }
+          }
+        },
+        {
+          "id": "gd8vE",
+          "type": "ref",
+          "ref": "oZLf6",
+          "name": "Home — boost at temperature",
+          "x": 1879,
+          "y": 83,
+          "fill": "$home-boost-background",
+          "descendants": {
+            "Eb3J6": {
+              "fill": "$home-boost-muted"
+            },
+            "jqorx": {
+              "fill": "$home-boost-muted",
+              "content": "TIP 16300µV",
+              "x": 93
+            },
+            "tBIBm": {
+              "content": "400"
+            },
+            "t1TXdF": {
+              "content": "BOOST",
+              "fill": "$home-heating-accent"
+            },
+            "KG2Vv": {
+              "enabled": false
+            },
+            "v21NF": {
+              "enabled": true,
+              "content": "10.0W"
+            },
+            "ZnUuh": {
+              "enabled": true,
+              "content": "SLEEP 2m"
+            }
+          }
+        },
+        {
+          "id": "UmdYA",
+          "type": "ref",
+          "ref": "oZLf6",
+          "name": "Home — tip disconnected (current firmware)",
+          "x": 2079,
+          "y": 83,
+          "fill": "$home-background",
+          "descendants": {
+            "Eb3J6": {
+              "enabled": false
+            },
+            "jqorx": {
+              "enabled": false
+            },
+            "tBIBm": {
+              "enabled": false
+            },
+            "t1TXdF": {
+              "enabled": false
+            },
+            "KG2Vv": {
+              "enabled": false
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "myjSA",
+      "x": 1000,
+      "y": 140,
+      "name": "Temperature adjustment — 320°C",
+      "context": "Temperature target adjustment, not live measured temperature. Firmware evidence: source/Core/Threads/UI/logic/TemperatureAdjust.cpp and source/Core/Threads/UI/drawing/color_160x80/draw_temperature_change.cpp. Initial held buttons are ignored until release. F short increments and B short decrements by configured short step; holds use configured long step and accelerate. ReverseButtonTempChangeEnabled swaps direction, so plus/minus display marks reverse with the button setting. Default draw has PLUS LEFT and MINUS RIGHT. OK short or long, or both buttons, saves and exits to previous screen; three seconds idle also saves/exits. No Cancel action. Units C/F; three digits support temperatures through 850F. Typography: Space Grotesk only, using existing size tokens (15px settings labels, 19px settings values, and 30px temperature digits where needed), weight 600. Reuse raster glyph sets; do not introduce utility-only 12px or 24px font sizes. Verified at native 160x80 canvas size; hardware legibility remains to be checked on-device.",
+      "reusable": true,
+      "clip": true,
+      "width": 160,
+      "height": 80,
+      "fill": "$section-solder-background",
+      "layout": "none",
+      "children": [
+        {
+          "type": "text",
+          "id": "jF3fY",
+          "x": 11,
+          "y": 7,
+          "name": "Title",
+          "fill": "$settings-text-color",
+          "textGrowth": "fixed-width",
+          "width": 141,
+          "content": "Set temperature",
+          "fontFamily": "$settings-label-font",
+          "fontSize": "$settings-label-size",
+          "fontWeight": "600"
+        },
+        {
+          "type": "text",
+          "id": "T90pw",
+          "x": 10,
+          "y": 42,
+          "name": "Increase mark",
+          "fill": "$section-solder-color",
+          "content": "+",
+          "fontFamily": "$settings-value-font",
+          "fontSize": "$settings-value-size",
+          "fontWeight": "600"
+        },
+        {
+          "type": "text",
+          "id": "cXH5Y",
+          "x": 40,
+          "y": 34,
+          "name": "Temperature",
+          "context": "The right edge of this number should be fixed in the same spot, whether the number be two digits, three, or one. ",
+          "fill": "$settings-text-color",
+          "content": "320",
+          "fontFamily": "$settings-value-font",
+          "fontSize": "$home-screen-temperature-size",
+          "fontWeight": "600"
+        },
+        {
+          "type": "text",
+          "id": "jOsNH",
+          "x": 98,
+          "y": 43,
+          "name": "Unit",
+          "fill": "$settings-text-color",
+          "content": "°C",
+          "fontFamily": "$settings-value-font",
+          "fontSize": 17,
+          "fontWeight": "600"
+        },
+        {
+          "type": "text",
+          "id": "sjP1m",
+          "x": 137,
+          "y": 42,
+          "name": "Decrease mark",
+          "fill": "$section-solder-color",
+          "content": "-",
+          "fontFamily": "$settings-value-font",
+          "fontSize": "$settings-value-size",
+          "fontWeight": "600"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "lM9hV",
+      "x": 1200,
+      "y": 140,
+      "name": "Confirmation — restore defaults",
+      "context": "Firmware behavior (source/Core/Src/settingsGUI.cpp:481-508, 1077-1087): userConfirmation accepts F_SHORT or OK_SHORT to confirm; it cancels on B_SHORT, F_LONG, B_LONG, OK_LONG, or BOTH. There is no timeout. Confirming calls resetSettings(), displays a success warning until dismissal, then reboots. The on-screen mapping emphasizes OK: Reset and Hold OK: Cancel; F_SHORT is an alternate confirm input. The firmware English prompt is “Are you sure you want to restore default settings?” No hold-to-reset safeguard or selected Yes/No state exists. Typography: Space Grotesk only, using existing size tokens (15px settings labels, 19px settings values, and 30px temperature digits where needed), weight 600. Reuse raster glyph sets; do not introduce utility-only 12px or 24px font sizes. Verified at native 160x80 canvas size; hardware legibility remains to be checked on-device.",
+      "reusable": true,
+      "clip": true,
+      "width": 160,
+      "height": 80,
+      "fill": "$section-advanced-background",
+      "layout": "none",
+      "children": [
+        {
+          "type": "text",
+          "id": "fTyG8",
+          "x": 11,
+          "y": 7,
+          "name": "Question",
+          "fill": "$settings-text-color",
+          "content": "Reset all settings?",
+          "lineHeight": "$settings-label-line-height",
+          "fontFamily": "$settings-label-font",
+          "fontSize": "$settings-label-size",
+          "fontWeight": "600"
+        },
+        {
+          "type": "text",
+          "id": "OM7Yv",
+          "x": 11,
+          "y": 48,
+          "name": "Confirm with OK",
+          "fill": "$section-advanced-color",
+          "content": "OK ",
+          "fontFamily": "$settings-value-font",
+          "fontSize": "$settings-value-size",
+          "fontWeight": "600"
+        },
+        {
+          "type": "group",
+          "id": "r23RhY",
+          "x": 101,
+          "y": 48,
+          "children": [
+            {
+              "type": "text",
+              "id": "T8XnFG",
+              "x": 0,
+              "y": 0,
+              "name": "Cancel with hold OK",
+              "fill": "$section-advanced-color",
+              "content": "OK",
+              "textAlignVertical": "bottom",
+              "fontFamily": "$settings-label-font",
+              "fontSize": 19,
+              "fontWeight": "600"
+            },
+            {
+              "type": "path",
+              "id": "L8eWYr",
+              "x": 28,
+              "y": 3,
+              "geometry": "M6.4 15l3.6-3.6 3.6 3.6 1.4-1.4-3.6-3.6 3.6-3.6-1.4-1.4-3.6 3.6-3.6-3.6-1.4 1.4 3.6 3.6-3.6 3.6 1.4 1.4z m3.6 5q-2.07 0-3.9-0.79-1.82-0.79-3.17-2.14-1.35-1.34-2.14-3.17-0.79-1.83-0.79-3.9 0-2.08 0.79-3.9 0.79-1.83 2.14-3.17 1.35-1.36 3.17-2.14 1.83-0.79 3.9-0.79 2.07 0 3.9 0.79 1.83 0.79 3.17 2.14 1.35 1.35 2.14 3.17 0.79 1.82 0.79 3.9 0 2.08-0.79 3.9-0.79 1.82-2.14 3.17-1.35 1.35-3.17 2.14-1.82 0.79-3.9 0.79m0-2q3.35 0 5.68-2.32 2.33-2.32 2.32-5.68-0.01-3.36-2.32-5.68-2.31-2.32-5.68-2.32-3.37 0-5.67 2.32-2.3 2.32-2.33 5.68-0.03 3.36 2.33 5.68 2.36 2.32 5.67 2.32",
+              "fill": "$section-advanced-color",
+              "width": 18,
+              "height": 18
+            },
+            {
+              "type": "group",
+              "id": "r4d6S",
+              "x": 6,
+              "y": -1,
+              "context": "This is what I'm using to represent a long press",
+              "rotation": 1.4033418597069752e-14,
+              "children": [
+                {
+                  "type": "ellipse",
+                  "id": "RlDci",
+                  "x": 13,
+                  "y": 0,
+                  "flipX": true,
+                  "fill": "$section-advanced-color",
+                  "width": 3.25,
+                  "height": 3
+                },
+                {
+                  "type": "ellipse",
+                  "id": "d5MKE",
+                  "x": 8.125,
+                  "y": 0,
+                  "flipX": true,
+                  "fill": "$section-advanced-color",
+                  "width": 3.25,
+                  "height": 3
+                },
+                {
+                  "type": "ellipse",
+                  "id": "PyH7L",
+                  "x": 3.25,
+                  "y": 0,
+                  "flipX": true,
+                  "fill": "$section-advanced-color",
+                  "width": 3.25,
+                  "height": 3
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "path",
+          "id": "DHjZf",
+          "x": 39,
+          "y": 49,
+          "geometry": "M13.33 15.8l-2.2 2.2-2.13-2.12 2.2-2.2q-0.1-0.28-0.15-0.57-0.05-0.29-0.05-0.61 0-1.45 1.03-2.48 1.03-1.03 2.47-1.02 0.45 0 0.88 0.11 0.43 0.11 0.8 0.31l-2.38 2.38 1.4 1.4 2.38-2.35q0.2 0.38 0.31 0.79 0.11 0.41 0.11 0.86 0 1.45-1.02 2.48-1.02 1.03-2.48 1.02-0.32 0-0.61-0.05-0.29-0.05-0.56-0.15m4.45-8.8l-2.08 0q-0.65-2.2-2.47-3.6-1.82-1.4-4.23-1.4-2.92 0-4.96 2.04-2.04 2.04-2.04 4.96 0 1.8 0.81 3.3 0.81 1.5 2.19 2.45l0-2.75 2 0 0 6-6 0 0-2 2.35 0q-1.55-1.25-2.45-3.06-0.9-1.81-0.9-3.94 0-1.88 0.71-3.51 0.71-1.63 1.93-2.85 1.21-1.22 2.85-1.93 1.64-0.71 3.51-0.71 3.23 0 5.66 1.99 2.44 1.98 3.12 5.01",
+          "fill": "$section-advanced-color",
+          "width": 20,
+          "height": 20
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "rLqZa",
+      "x": 1400,
+      "y": 140,
+      "name": "Settings help — power limit",
+      "context": "Settings help: full description, single unwrapped horizontal marquee. Appearance follows the existing setting screens: 3px category-color rail, 11px left text alignment and 8px right inset. The 24px-tall text line is vertically centered on the 80px display. Existing Space Grotesk 19px semibold settings-value font, existing foreground and category colors; no added raster font sizes. Text viewport is 141px wide. Scroll messages wider than the viewport using the existing DescriptionScrollSpeed, reading pauses and loop behavior; fitting messages are horizontally centered and remain still. Keep existing help activation and button handling unchanged. No heading, footer, indicators, word wrapping or pagination. Use rendered text width for proportional-font marquee calculations. Canvas shows the initial pause; clipping within the marquee is intentional. Firmware unchanged.",
+      "reusable": true,
+      "clip": true,
+      "width": 160,
+      "height": 80,
+      "fill": "$section-advanced-background",
+      "layout": "none",
+      "children": [
+        {
+          "type": "rectangle",
+          "id": "HSsEV",
+          "x": 0,
+          "y": 0,
+          "name": "Advanced category color",
+          "fill": "$section-advanced-color",
+          "width": 3,
+          "height": 80
+        },
+        {
+          "type": "frame",
+          "id": "mqZZx",
+          "x": 11,
+          "y": 28,
+          "name": "Inset horizontal marquee",
+          "clip": true,
+          "width": 141,
+          "height": 24,
+          "layout": "none",
+          "children": [
+            {
+              "type": "text",
+              "id": "IjyaY",
+              "x": 0,
+              "y": 0,
+              "name": "Full description — horizontal marquee",
+              "fill": "$settings-text-color",
+              "content": "Average maximum power the iron can use (W=watt)",
+              "lineHeight": 1.25,
+              "fontFamily": "$settings-value-font",
+              "fontSize": "$settings-value-size",
+              "fontWeight": "600"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "QGgGS",
+      "x": 1000,
+      "y": 260,
+      "name": "Advanced · Calibrate input voltage (active)",
+      "reusable": true,
+      "clip": true,
+      "width": 160,
+      "height": 80,
+      "fill": "$section-advanced-background",
+      "layout": "none",
+      "children": [
+        {
+          "type": "rectangle",
+          "id": "wuNuB",
+          "x": 0,
+          "y": 0,
+          "name": "Category color",
+          "fill": "$section-advanced-color",
+          "width": 3,
+          "height": 80
+        },
+        {
+          "type": "text",
+          "id": "vIBmE",
+          "x": 11,
+          "y": 7,
+          "name": "Measured voltage",
+          "fill": "$settings-text-color",
+          "content": "Input: 20.0 V",
+          "fontFamily": "$settings-label-font",
+          "fontSize": "$settings-label-size",
+          "fontWeight": "600"
+        },
+        {
+          "type": "icon",
+          "id": "k6yMkM",
+          "x": 10,
+          "y": 50,
+          "name": "Decrease divider",
+          "width": 16,
+          "height": 16,
+          "icon": "chevron-left",
+          "library": "lucide",
+          "fill": "$section-advanced-color"
+        },
+        {
+          "type": "text",
+          "id": "z79fZ",
+          "x": 34,
+          "y": 46,
+          "name": "Divider value",
+          "fill": "$section-advanced-color",
+          "content": "540",
+          "fontFamily": "$settings-value-font",
+          "fontSize": "$settings-value-size",
+          "fontWeight": "600"
+        },
+        {
+          "type": "icon",
+          "id": "Zla4E",
+          "x": 137,
+          "y": 50,
+          "name": "Increase divider",
+          "width": 16,
+          "height": 16,
+          "icon": "chevron-right",
+          "library": "lucide",
+          "fill": "$section-advanced-color"
+        }
+      ]
+    },
+    {
+      "id": "i0weZ",
+      "type": "ref",
+      "ref": "lM9hV",
+      "name": "Confirmation — calibrate CJC",
+      "x": 1200,
+      "y": 260,
+      "descendants": {
+        "fTyG8": {
+          "content": "Tip & handle cold\nbefore reboot?",
+          "y": 5
+        },
+        "OM7Yv": {
+          "x": 101,
+          "y": 49.5
+        },
+        "r23RhY": {
+          "type": "group",
+          "id": "ym6i9",
+          "x": 11,
+          "y": 49.5,
+          "children": [
+            {
+              "id": "OM7Yv",
+              "type": "ref",
+              "ref": "OM7Yv",
+              "x": 0,
+              "y": 0,
+              "rotation": 0
+            },
+            {
+              "id": "DHjZf",
+              "type": "ref",
+              "ref": "DHjZf",
+              "x": 28,
+              "y": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "frame",
+      "id": "sISj9",
+      "x": 1200,
+      "y": 360,
+      "name": "Calibration — CJC sampling",
+      "reusable": true,
+      "clip": true,
+      "width": 160,
+      "height": 80,
+      "fill": "$section-advanced-background",
+      "layout": "none",
+      "children": [
+        {
+          "type": "rectangle",
+          "id": "J4QB9i",
+          "x": 0,
+          "y": 0,
+          "name": "Category color",
+          "fill": "$section-advanced-color",
+          "width": 3,
+          "height": 80
+        },
+        {
+          "type": "text",
+          "id": "gr0vT",
+          "x": 11,
+          "y": 7,
+          "name": "Title",
+          "fill": "$settings-text-color",
+          "content": "Calibrating CJC",
+          "fontFamily": "$settings-label-font",
+          "fontSize": "$settings-label-size",
+          "fontWeight": "600"
+        },
+        {
+          "type": "rectangle",
+          "cornerRadius": 4,
+          "id": "QDxMt",
+          "x": 11,
+          "y": 52,
+          "name": "Progress track",
+          "width": 138,
+          "height": 8,
+          "stroke": "$section-advanced-color",
+          "strokeWidth": 1
+        },
+        {
+          "type": "rectangle",
+          "cornerRadius": 4,
+          "id": "QqSDR",
+          "x": 11,
+          "y": 52,
+          "name": "Progress fill",
+          "fill": "$section-advanced-color",
+          "width": 86,
+          "height": 8
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "V8BBSU",
+      "x": 1800,
+      "y": 140,
+      "name": "Alert — Thermal runaway",
+      "reusable": true,
+      "clip": true,
+      "width": 160,
+      "height": 80,
+      "fill": "$alert-danger-background",
+      "layout": "none",
+      "children": [
+        {
+          "type": "rectangle",
+          "id": "q00vbb",
+          "x": 0,
+          "y": 0,
+          "name": "Alert rail",
+          "fill": "$alert-danger-color",
+          "width": 3,
+          "height": 80
+        },
+        {
+          "type": "icon",
+          "id": "jY3PB",
+          "x": 11,
+          "y": 8,
+          "name": "Alert icon",
+          "width": 18,
+          "height": 18,
+          "icon": "triangle-alert",
+          "library": "lucide",
+          "fill": "$alert-danger-color"
+        },
+        {
+          "type": "text",
+          "id": "Ddkdj",
+          "x": 35,
+          "y": 7,
+          "name": "Alert title",
+          "fill": "$settings-text-color",
+          "content": "Thermal runaway",
+          "fontFamily": "$settings-label-font",
+          "fontSize": "$settings-label-size",
+          "fontWeight": "600"
+        },
+        {
+          "type": "text",
+          "id": "VPTIG",
+          "x": 11,
+          "y": 46,
+          "name": "Alert detail",
+          "fill": "$alert-danger-color",
+          "content": "Heater stopped",
+          "fontFamily": "$settings-value-font",
+          "fontSize": "$settings-value-size",
+          "fontWeight": "600"
+        }
+      ]
+    },
+    {
+      "id": "G07uV",
+      "type": "ref",
+      "ref": "V8BBSU",
+      "name": "Alert — Tip shorted",
+      "x": 1800,
+      "y": 260,
+      "descendants": {
+        "Ddkdj": {
+          "content": "Tip shorted"
+        },
+        "VPTIG": {
+          "content": "Heater stopped"
+        }
+      }
+    },
+    {
+      "id": "m9KzP",
+      "type": "ref",
+      "ref": "V8BBSU",
+      "name": "Alert — Undervoltage",
+      "x": 1800,
+      "y": 360,
+      "fill": "$section-power-background",
+      "descendants": {
+        "q00vbb": {
+          "fill": "$section-power-color"
+        },
+        "jY3PB": {
+          "fill": "$section-power-color"
+        },
+        "Ddkdj": {
+          "content": "Undervoltage"
+        },
+        "VPTIG": {
+          "content": "Input 5.1 V",
+          "fill": "$section-power-color"
+        }
+      }
+    },
+    {
+      "id": "UYmQO",
+      "type": "ref",
+      "ref": "V8BBSU",
+      "name": "Status — Buttons locked",
+      "x": 1800,
+      "y": 460,
+      "fill": "$section-solder-background",
+      "descendants": {
+        "q00vbb": {
+          "fill": "$section-solder-color"
+        },
+        "jY3PB": {
+          "icon": "lock",
+          "fill": "$section-solder-color"
+        },
+        "Ddkdj": {
+          "content": "Buttons"
+        },
+        "VPTIG": {
+          "content": "Locked",
+          "fill": "$section-solder-color"
+        }
+      }
+    },
+    {
+      "id": "nhdow",
+      "type": "ref",
+      "ref": "V8BBSU",
+      "name": "Status — Buttons unlocked",
+      "x": 1800,
+      "y": 560,
+      "fill": "$section-solder-background",
+      "descendants": {
+        "q00vbb": {
+          "fill": "$section-solder-color"
+        },
+        "jY3PB": {
+          "icon": "lock-open",
+          "fill": "$section-solder-color"
+        },
+        "Ddkdj": {
+          "content": "Buttons"
+        },
+        "VPTIG": {
+          "content": "Unlocked",
+          "fill": "$section-solder-color"
+        }
+      }
+    },
+    {
+      "id": "UXQiN",
+      "type": "ref",
+      "ref": "V8BBSU",
+      "name": "Status — Calibration done",
+      "x": 1800,
+      "y": 660,
+      "fill": "$section-advanced-background",
+      "descendants": {
+        "q00vbb": {
+          "fill": "$section-advanced-color"
+        },
+        "jY3PB": {
+          "icon": "circle-check",
+          "fill": "$section-advanced-color"
+        },
+        "Ddkdj": {
+          "content": "Calibration"
+        },
+        "VPTIG": {
+          "content": "Saved",
+          "fill": "$section-advanced-color"
+        }
+      }
+    },
+    {
+      "type": "frame",
+      "id": "wDFBu",
+      "x": 2000,
+      "y": 140,
+      "name": "Debug — Input voltage",
+      "reusable": true,
+      "clip": true,
+      "width": 160,
+      "height": 80,
+      "fill": "$home-idle-background",
+      "layout": "none",
+      "children": [
+        {
+          "type": "rectangle",
+          "id": "SzK71",
+          "x": 0,
+          "y": 0,
+          "name": "Debug rail",
+          "fill": "$home-idle-secondary",
+          "width": 3,
+          "height": 80
+        },
+        {
+          "type": "text",
+          "id": "sllG0",
+          "x": 11,
+          "y": 7,
+          "name": "Item label",
+          "fill": "$settings-text-color",
+          "content": "Input voltage",
+          "fontFamily": "$settings-label-font",
+          "fontSize": "$settings-label-size",
+          "fontWeight": "600"
+        },
+        {
+          "type": "text",
+          "id": "gSavW",
+          "x": 112,
+          "y": 7,
+          "name": "Item index",
+          "fill": "$home-idle-secondary",
+          "textGrowth": "fixed-width",
+          "width": 40,
+          "content": "5/17",
+          "textAlign": "right",
+          "fontFamily": "$settings-label-font",
+          "fontSize": "$settings-label-size",
+          "fontWeight": "600"
+        },
+        {
+          "type": "text",
+          "id": "UztOt",
+          "x": 11,
+          "y": 46,
+          "name": "Item value",
+          "fill": "$home-idle-accent",
+          "content": "20.0 V",
+          "fontFamily": "$settings-value-font",
+          "fontSize": "$settings-value-size",
+          "fontWeight": "600"
+        }
+      ]
+    },
+    {
+      "id": "ailkh",
+      "type": "ref",
+      "ref": "wDFBu",
+      "name": "Debug — Factory tip cal",
+      "x": 2000,
+      "y": 260,
+      "descendants": {
+        "sllG0": {
+          "content": "Tip cal"
+        },
+        "gSavW": {
+          "content": "17/17"
+        },
+        "UztOt": {
+          "content": "223 · 393 · 572"
+        }
+      }
+    },
+    {
+      "id": "kvfIe",
+      "type": "ref",
+      "ref": "wDFBu",
+      "name": "Debug — Device ID",
+      "x": 2000,
+      "y": 360,
+      "descendants": {
+        "sllG0": {
+          "content": "Device ID"
+        },
+        "gSavW": {
+          "content": "2/17"
+        },
+        "UztOt": {
+          "content": "3F8A · 91C04B12"
+        }
+      }
+    },
+    {
+      "type": "frame",
+      "id": "vspEb",
+      "x": 1600,
+      "y": 140,
+      "name": "Home — idle",
+      "reusable": true,
+      "clip": true,
+      "width": 160,
+      "height": 80,
+      "fill": "$home-idle-background",
+      "layout": "none",
+      "children": [
+        {
+          "type": "rectangle",
+          "id": "HATib",
+          "x": 0,
+          "y": 0,
+          "name": "State rail",
+          "fill": "$home-idle-accent",
+          "width": 3,
+          "height": 80
+        },
+        {
+          "type": "frame",
+          "id": "CqKag",
+          "x": 11,
+          "y": 4,
+          "name": "Hero temperature",
+          "width": 88,
+          "height": 38,
+          "gap": 2,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "BJmNq",
+              "name": "Tip temperature",
+              "fill": "$settings-text-color",
+              "content": "25",
+              "fontFamily": "$home-screen-temperature-font",
+              "fontSize": "$home-screen-temperature-size",
+              "fontWeight": "600"
+            },
+            {
+              "type": "frame",
+              "id": "I1A6W",
+              "name": "Unit align",
+              "padding": [
+                0,
+                0,
+                6,
+                0
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "S9q3ut",
+                  "name": "Unit",
+                  "fill": "$home-idle-secondary",
+                  "content": "°C",
+                  "fontFamily": "$section-title-font",
+                  "fontSize": "$section-title-size",
+                  "fontWeight": "600"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "g1C4YG",
+          "x": 100,
+          "y": 7,
+          "name": "Target stack",
+          "width": 52,
+          "layout": "vertical",
+          "gap": 1,
+          "alignItems": "end",
+          "children": [
+            {
+              "type": "text",
+              "id": "DXFVp",
+              "name": "Mode tag",
+              "fill": "$home-idle-accent",
+              "content": "Ready",
+              "fontFamily": "$settings-label-font",
+              "fontSize": "$settings-label-size",
+              "fontWeight": "600"
+            },
+            {
+              "type": "text",
+              "id": "o7ZbmB",
+              "name": "Target temp",
+              "fill": "$home-idle-secondary",
+              "content": "320°",
+              "fontFamily": "$settings-label-font",
+              "fontSize": "$settings-label-size",
+              "fontWeight": "600"
+            }
+          ]
+        },
+        {
+          "type": "rectangle",
+          "cornerRadius": 2,
+          "id": "fQkEZ",
+          "x": 11,
+          "y": 47,
+          "name": "Setpoint bar track",
+          "fill": "$home-idle-track",
+          "width": 141,
+          "height": 4
+        },
+        {
+          "type": "rectangle",
+          "cornerRadius": 2,
+          "id": "A1mtJ",
+          "x": 11,
+          "y": 47,
+          "name": "Setpoint bar fill",
+          "fill": "$home-idle-accent",
+          "width": 89,
+          "height": 4
+        },
+        {
+          "type": "text",
+          "id": "LNcHw",
+          "x": 11,
+          "y": 56,
+          "name": "Primary stat",
+          "fill": "$home-idle-secondary",
+          "content": "20.0 V",
+          "fontFamily": "$settings-label-font",
+          "fontSize": "$settings-label-size",
+          "fontWeight": "600"
+        },
+        {
+          "type": "text",
+          "id": "pZA8z",
+          "x": 68,
+          "y": 56,
+          "name": "Secondary stat",
+          "fill": "$home-idle-secondary",
+          "textGrowth": "fixed-width",
+          "width": 84,
+          "content": "Standby",
+          "textAlign": "right",
+          "fontFamily": "$settings-label-font",
+          "fontSize": "$settings-label-size",
+          "fontWeight": "600"
+        },
+        {
+          "type": "icon",
+          "id": "u5ZTMY",
+          "x": 11,
+          "y": 12,
+          "name": "Disconnected icon",
+          "enabled": false,
+          "width": 22,
+          "height": 22,
+          "icon": "unlink",
+          "library": "lucide",
+          "fill": "$section-power-color"
+        },
+        {
+          "type": "text",
+          "id": "nK3jB",
+          "x": 40,
+          "y": 10,
+          "name": "Disconnected label",
+          "enabled": false,
+          "fill": "$settings-text-color",
+          "content": "No tip",
+          "fontFamily": "$settings-value-font",
+          "fontSize": "$settings-value-size",
+          "fontWeight": "600"
+        }
+      ]
+    },
+    {
+      "id": "QiOQ7",
+      "type": "ref",
+      "ref": "vspEb",
+      "name": "Home — soldering",
+      "x": 1600,
+      "y": 260,
+      "fill": "$section-solder-background",
+      "descendants": {
+        "HATib": {
+          "fill": "$section-solder-color"
+        },
+        "BJmNq": {
+          "content": "320"
+        },
+        "S9q3ut": {
+          "fill": "$home-solder-secondary"
+        },
+        "DXFVp": {
+          "content": "Set",
+          "fill": "$home-solder-secondary"
+        },
+        "o7ZbmB": {
+          "content": "320°",
+          "fill": "$settings-text-color"
+        },
+        "fQkEZ": {
+          "fill": "$home-solder-track"
+        },
+        "A1mtJ": {
+          "enabled": true,
+          "width": 89,
+          "fill": "$section-solder-color"
+        },
+        "LNcHw": {
+          "content": "18.5 W",
+          "fill": "$section-solder-color"
+        },
+        "pZA8z": {
+          "content": "20.0 V · 2m",
+          "fill": "$home-solder-secondary"
+        }
+      }
+    },
+    {
+      "id": "I58JB",
+      "type": "ref",
+      "ref": "vspEb",
+      "name": "Home — heating up",
+      "x": 1600,
+      "y": 360,
+      "fill": "$section-solder-background",
+      "descendants": {
+        "HATib": {
+          "fill": "$section-solder-color"
+        },
+        "BJmNq": {
+          "content": "184"
+        },
+        "S9q3ut": {
+          "fill": "$home-solder-secondary"
+        },
+        "DXFVp": {
+          "content": "Heat",
+          "fill": "$section-solder-color"
+        },
+        "o7ZbmB": {
+          "content": "320°",
+          "fill": "$settings-text-color"
+        },
+        "fQkEZ": {
+          "fill": "$home-solder-track"
+        },
+        "A1mtJ": {
+          "enabled": true,
+          "width": 89,
+          "fill": "$section-solder-color"
+        },
+        "LNcHw": {
+          "content": "96.0 W",
+          "fill": "$section-solder-color"
+        },
+        "pZA8z": {
+          "content": "20.0 V · 2m",
+          "fill": "$home-solder-secondary"
+        }
+      }
+    },
+    {
+      "id": "m7g42",
+      "type": "ref",
+      "ref": "vspEb",
+      "name": "Home — boost",
+      "x": 1600,
+      "y": 460,
+      "fill": "$home-boost-surface",
+      "descendants": {
+        "HATib": {
+          "fill": "$home-boost-accent"
+        },
+        "BJmNq": {
+          "content": "420"
+        },
+        "S9q3ut": {
+          "fill": "$home-solder-secondary"
+        },
+        "DXFVp": {
+          "content": "Boost",
+          "fill": "$home-boost-accent"
+        },
+        "o7ZbmB": {
+          "content": "420°",
+          "fill": "$settings-text-color"
+        },
+        "fQkEZ": {
+          "fill": "$home-boost-track"
+        },
+        "A1mtJ": {
+          "enabled": true,
+          "width": 129,
+          "fill": "$home-boost-accent"
+        },
+        "LNcHw": {
+          "content": "64.0 W",
+          "fill": "$home-boost-accent"
+        },
+        "pZA8z": {
+          "content": "20.0 V",
+          "fill": "$home-solder-secondary"
+        }
+      }
+    },
+    {
+      "id": "qWCrn",
+      "type": "ref",
+      "ref": "vspEb",
+      "name": "Home — sleep",
+      "x": 1600,
+      "y": 560,
+      "fill": "$section-sleep-background",
+      "descendants": {
+        "HATib": {
+          "fill": "$section-sleep-color"
+        },
+        "BJmNq": {
+          "content": "150"
+        },
+        "S9q3ut": {
+          "fill": "$home-sleep-secondary"
+        },
+        "DXFVp": {
+          "content": "Sleep",
+          "fill": "$section-sleep-color"
+        },
+        "o7ZbmB": {
+          "content": "150°",
+          "fill": "$home-sleep-secondary"
+        },
+        "fQkEZ": {
+          "fill": "$home-sleep-track"
+        },
+        "A1mtJ": {
+          "enabled": true,
+          "width": 20,
+          "fill": "$section-sleep-color"
+        },
+        "LNcHw": {
+          "content": "8.0 W",
+          "fill": "$section-sleep-color"
+        },
+        "pZA8z": {
+          "content": "20.0 V",
+          "fill": "$home-sleep-secondary"
+        }
+      }
+    },
+    {
+      "id": "rstBz",
+      "type": "ref",
+      "ref": "vspEb",
+      "name": "Home — cooling",
+      "x": 1600,
+      "y": 660,
+      "fill": "$home-idle-background",
+      "descendants": {
+        "HATib": {
+          "fill": "$section-power-color"
+        },
+        "BJmNq": {
+          "content": "142",
+          "fill": "$section-power-color"
+        },
+        "S9q3ut": {
+          "fill": "$home-idle-secondary"
+        },
+        "DXFVp": {
+          "content": "Hot",
+          "fill": "$section-power-color"
+        },
+        "o7ZbmB": {
+          "content": "320°",
+          "fill": "$home-idle-secondary"
+        },
+        "fQkEZ": {
+          "fill": "$home-idle-track"
+        },
+        "A1mtJ": {
+          "enabled": true,
+          "width": 89,
+          "fill": "$section-power-color"
+        },
+        "LNcHw": {
+          "content": "20.0 V",
+          "fill": "$home-idle-secondary"
+        },
+        "pZA8z": {
+          "content": "Cooling",
+          "fill": "$section-power-color"
+        }
+      }
+    },
+    {
+      "id": "u9CWF",
+      "type": "ref",
+      "ref": "vspEb",
+      "name": "Home — tip disconnected",
+      "x": 1600,
+      "y": 760,
+      "fill": "$home-idle-background",
+      "descendants": {
+        "HATib": {
+          "fill": "$section-power-color"
+        },
+        "CqKag": {
+          "enabled": false
+        },
+        "DXFVp": {
+          "content": "Open",
+          "fill": "$section-power-color"
+        },
+        "o7ZbmB": {
+          "content": "—",
+          "fill": "$home-idle-secondary"
+        },
+        "A1mtJ": {
+          "enabled": false
+        },
+        "LNcHw": {
+          "content": "20.0 V",
+          "fill": "$home-idle-secondary"
+        },
+        "pZA8z": {
+          "content": "Insert tip",
+          "fill": "$section-power-color"
+        },
+        "u5ZTMY": {
+          "enabled": true
+        },
+        "nK3jB": {
+          "enabled": true
+        }
+      }
+    }
+  ],
+  "variables": {
+    "display-width": {
+      "type": "number",
+      "value": 160
+    },
+    "display-height": {
+      "type": "number",
+      "value": 80
+    },
+    "display-background": {
+      "type": "color",
+      "value": "#FFFFFF"
+    },
+    "home-background": {
+      "type": "color",
+      "value": "#080C10"
+    },
+    "home-ink": {
+      "type": "color",
+      "value": "#F7EFE6"
+    },
+    "home-accent": {
+      "type": "color",
+      "value": "#42B6C6"
+    },
+    "home-muted": {
+      "type": "color",
+      "value": "#526D52"
+    },
+    "home-number-font": {
+      "type": "string",
+      "value": "Inter"
+    },
+    "home-label-font": {
+      "type": "string",
+      "value": "Fusion Pixel 10px Prop latin"
+    },
+    "home-number-size": {
+      "type": "number",
+      "value": 26
+    },
+    "home-label-size": {
+      "type": "number",
+      "value": 10
+    },
+    "home-status-size": {
+      "type": "number",
+      "value": 12
+    },
+    "home-status-font": {
+      "type": "string",
+      "value": "Fusion Pixel 12px Prop latin"
+    },
+    "home-solder-background": {
+      "type": "color",
+      "value": "#291400"
+    },
+    "home-boost-background": {
+      "type": "color",
+      "value": "#311800"
+    },
+    "home-sleep-background": {
+      "type": "color",
+      "value": "#082420"
+    },
+    "home-heating-accent": {
+      "type": "color",
+      "value": "#FF7929"
+    },
+    "home-solder-muted": {
+      "type": "color",
+      "value": "#9C6941"
+    },
+    "home-boost-muted": {
+      "type": "color",
+      "value": "#B46920"
+    },
+    "home-sleep-muted": {
+      "type": "color",
+      "value": "#4A717B"
+    },
+    "menu-background": {
+      "type": "color",
+      "value": "#000000"
+    },
+    "menu-foreground": {
+      "type": "color",
+      "value": "#FFFFFF"
+    },
+    "menu-font": {
+      "type": "string",
+      "value": "Fusion Pixel 12px Prop latin"
+    },
+    "menu-title-size": {
+      "type": "number",
+      "value": 16
+    },
+    "menu-value-size": {
+      "type": "number",
+      "value": 24
+    },
+    "menu-icon-size": {
+      "type": "number",
+      "value": 21
+    },
+    "menu-indicator-width": {
+      "type": "number",
+      "value": 2
+    },
+    "section-title-font": {
+      "type": "string",
+      "value": "Space Grotesk"
+    },
+    "section-title-size": {
+      "type": "number",
+      "value": 17
+    },
+    "section-title-color": {
+      "type": "color",
+      "value": "#F4F4F0"
+    },
+    "section-icon-ink": {
+      "type": "color",
+      "value": "#111517"
+    },
+    "section-power-color": {
+      "type": "color",
+      "value": "#EDBF6F"
+    },
+    "section-power-background": {
+      "type": "color",
+      "value": "#292114"
+    },
+    "section-solder-color": {
+      "type": "color",
+      "value": "#FF956A"
+    },
+    "section-solder-background": {
+      "type": "color",
+      "value": "#281914"
+    },
+    "section-sleep-color": {
+      "type": "color",
+      "value": "#9EA8FF"
+    },
+    "section-sleep-background": {
+      "type": "color",
+      "value": "#151A30"
+    },
+    "section-ui-color": {
+      "type": "color",
+      "value": "#7AD7F0"
+    },
+    "section-ui-background": {
+      "type": "color",
+      "value": "#10242A"
+    },
+    "section-advanced-color": {
+      "type": "color",
+      "value": "#F19CC4"
+    },
+    "section-advanced-background": {
+      "type": "color",
+      "value": "#2C1724"
+    },
+    "section-title-line-height": {
+      "type": "number",
+      "value": 1.3
+    },
+    "settings-label-font": {
+      "type": "string",
+      "value": "Space Grotesk"
+    },
+    "settings-label-size": {
+      "type": "number",
+      "value": 15
+    },
+    "settings-label-line-height": {
+      "type": "number",
+      "value": 1.1
+    },
+    "settings-value-font": {
+      "type": "string",
+      "value": "Space Grotesk"
+    },
+    "settings-value-size": {
+      "type": "number",
+      "value": 19
+    },
+    "settings-text-color": {
+      "type": "color",
+      "value": "#F4F4F0"
+    },
+    "home-screen-label-font": {
+      "type": "string",
+      "value": "Space Grotesk"
+    },
+    "home-screen-label-size": {
+      "type": "number",
+      "value": 11
+    },
+    "home-screen-temperature-font": {
+      "type": "string",
+      "value": "Space Grotesk"
+    },
+    "home-screen-temperature-size": {
+      "type": "number",
+      "value": 30
+    },
+    "home-screen-value-font": {
+      "type": "string",
+      "value": "Space Grotesk"
+    },
+    "home-screen-value-size": {
+      "type": "number",
+      "value": 13
+    },
+    "home-screen-text-color": {
+      "type": "color",
+      "value": "#F4F4F0"
+    },
+    "home-screen-secondary-color": {
+      "type": "color",
+      "value": "#D4B8AE"
+    },
+    "utility-label-size": {
+      "type": "number",
+      "value": 12
+    },
+    "utility-help-size": {
+      "type": "number",
+      "value": 11
+    },
+    "utility-help-line-height": {
+      "type": "number",
+      "value": 1.1
+    },
+    "utility-digit-size": {
+      "type": "number",
+      "value": 26
+    },
+    "home-idle-background": {
+      "type": "color",
+      "value": "#10141A"
+    },
+    "home-idle-secondary": {
+      "type": "color",
+      "value": "#6E7F91"
+    },
+    "home-idle-accent": {
+      "type": "color",
+      "value": "#7AD7F0"
+    },
+    "home-solder-secondary": {
+      "type": "color",
+      "value": "#B48876"
+    },
+    "home-boost-surface": {
+      "type": "color",
+      "value": "#351D15"
+    },
+    "home-boost-accent": {
+      "type": "color",
+      "value": "#FFB26B"
+    },
+    "home-sleep-secondary": {
+      "type": "color",
+      "value": "#737B9E"
+    },
+    "alert-danger-background": {
+      "type": "color",
+      "value": "#2F1318"
+    },
+    "alert-danger-color": {
+      "type": "color",
+      "value": "#FF7A85"
+    },
+    "home-idle-track": {
+      "type": "color",
+      "value": "#1E2733"
+    },
+    "home-solder-track": {
+      "type": "color",
+      "value": "#422820"
+    },
+    "home-boost-track": {
+      "type": "color",
+      "value": "#522E20"
+    },
+    "home-sleep-track": {
+      "type": "color",
+      "value": "#232B4D"
+    }
+  },
+  "fileToken": "b5ceae1f-e926-400c-9c57-9622d672ac55",
+  "fonts": [
+    {
+      "name": "Fusion Pixel 10px Prop latin",
+      "url": "fusion-pixel-10px-proportional-latin.otf"
+    },
+    {
+      "name": "Fusion Pixel 12px Prop latin",
+      "url": "fusion-pixel-12px-proportional-latin.otf"
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+version: '3'
+
+vars:
+  DOCKER_IMAGE: ironos-builder:local
+  FIRMWARE_BIN: source/Hexfile/HS02A_EN_firmware.bin
+  BOOTLOADER_MOUNT: /run/media/{{.USER}}/BOOTLOADER
+
+tasks:
+  docker-image:
+    internal: true
+    sources:
+      - scripts/IronOS.Dockerfile
+    status:
+      - docker image inspect {{.DOCKER_IMAGE}} >/dev/null 2>&1
+    cmds:
+      - docker build --file scripts/IronOS.Dockerfile --tag {{.DOCKER_IMAGE}} scripts
+
+  build:
+    desc: Build HS02A_EN_firmware.bin using scripts/IronOS.Dockerfile
+    deps:
+      - docker-image
+    cmds:
+      - |
+        docker run --rm \
+          --user "$(id -u):$(id -g)" \
+          --volume "{{.ROOT_DIR}}:/build/source" \
+          {{.DOCKER_IMAGE}} \
+          make -j4 firmware-EN model=HS02A
+
+  flash:
+    desc: Copy HS02A_EN_firmware.bin twice to the mounted BOOTLOADER drive if present
+    deps:
+      - build
+    cmds:
+      - |
+        if [ ! -f "{{.FIRMWARE_BIN}}" ]; then
+          echo "Error: {{.FIRMWARE_BIN}} not found (run 'task build' first)" >&2
+          exit 1
+        fi
+        if [ -d "{{.BOOTLOADER_MOUNT}}" ] && mountpoint -q "{{.BOOTLOADER_MOUNT}}"; then
+          echo "Flashing {{.FIRMWARE_BIN}} to {{.BOOTLOADER_MOUNT}} (pass 1/2)..."
+          cp -- "{{.FIRMWARE_BIN}}" "{{.BOOTLOADER_MOUNT}}/"
+          sleep 1
+          if [ -d "{{.BOOTLOADER_MOUNT}}" ]; then
+            echo "Flashing {{.FIRMWARE_BIN}} to {{.BOOTLOADER_MOUNT}} (pass 2/2)..."
+            cp -- "{{.FIRMWARE_BIN}}" "{{.BOOTLOADER_MOUNT}}/"
+          fi
+          echo "Done."
+        else
+          echo "BOOTLOADER drive not mounted at {{.BOOTLOADER_MOUNT}}; skipping flash."
+        fi

@@ -31,6 +31,9 @@ OperatingMode handleHomeButtons(const ButtonState buttons, guiContext *cxt) {
       return OperatingMode::Soldering;
     }
     break;
+  case BUTTON_F_LONG:
+    cxt->transitionMode = TransitionAnimation::None;
+    return OperatingMode::TemperatureAdjust;
   case BUTTON_OK_SHORT:
     cxt->transitionMode = TransitionAnimation::None;
     return OperatingMode::SettingsMenu;

@@ -18,11 +18,10 @@ uniform float u_fps;
 
 void main() {
   vec2 uv = gl_FragCoord.xy / u_resolution;
-  uv.y = 1.0 - uv.y;
 
   float frame = mod(floor(u_time * u_fps), 10.0);
   float col = mod(frame, 5.0);
-  float row = floor(frame / 5.0);
+  float row = 1.0 - floor(frame / 5.0);
 
   vec2 spriteUV = vec2((col + uv.x) / 5.0, (row + uv.y) / 2.0);
   gl_FragColor = texture2D(u_sprite, spriteUV);

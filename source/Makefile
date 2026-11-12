@@ -763,7 +763,7 @@ check-style:
 	else  echo "" && echo "" && echo "Style check: FAIL! Please, check the log above for the details." && echo "If there is a false-negative trigger, please, report an issue attaching the log or link to the log!" && echo "" && echo "" && exit 1 ; \
 	fi;
 
-.PHONY: style  check-style  all  clean  default  clean-all
+.PHONY: style  check-style  all  clean  default  clean-all  $(OUTPUT_DIR)/Core/Threads/UI/drawing/color_160x80/draw_debug_menu.o
 .SECONDARY:
 
 # Pull in dependency info for *existing* .o files

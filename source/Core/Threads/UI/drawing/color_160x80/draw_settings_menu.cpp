@@ -1,14 +1,15 @@
 /*
- * draw_settings_menu.cpp — Top-level 5-category Settings menu cards for HS-02.
+ * draw_settings_menu.cpp — Category menu cards, sub-setting shell, and help marquee.
  *
  * Purpose:
  *   Renders the five top-level Settings category cards (Power, Soldering, Sleep,
- *   Interface, Advanced) with live telemetry summary pills, rounded category icon
- *   badges, and the bottom 5-tab MFD page indicator.
+ *   Interface, Advanced), wraps individual sub-menu setting screens with their
+ *   category rail + title, renders the scrolling help marquee after inactivity, and
+ *   computes the exact tick duration required for three complete help scroll passes.
  *
  * Why it exists:
- *   Separates top-level menu navigation cards from individual sub-menu setting
- *   screens (draw_settings_*.cpp).
+ *   Centralizes Settings chrome and help-marquee timing so SettingsMenu.cpp and
+ *   GUIThread.cpp share one authoritative scroll-cycle definition.
  */
 
 #include "HudTelemetry.hpp"
@@ -46,6 +47,14 @@ constexpr int16_t kPageActiveH  = 8;
 constexpr int16_t kPageIdleY    = 68;
 constexpr int16_t kPageIdleH    = 4;
 
+constexpr TickType_t kHelpLeadInTicks    = TICKS_SECOND * 4;
+constexpr TickType_t kHelpStepTicks      = TICKS_100MS / 3u;
+constexpr uint16_t   kHelpViewWidth      = 136;
+constexpr uint16_t   kHelpThumbWidth     = 38;
+constexpr uint16_t   kHelpThumbTravel    = 142u - kHelpThumbWidth;
+constexpr uint32_t   kHelpScrollTailPx   = 12u;
+constexpr uint32_t   kHelpPauseSteps     = 25u;
+constexpr uint32_t   kHelpMinRunThroughs = 3u;
 int16_t drawSummaryPill(int16_t x, uint16_t fillRgb, uint16_t strokeRgb, const char *label,
                         uint16_t textRgb, int16_t padX = 5, int16_t maxRightX = 108,
                         int16_t gap = kPillGap) {
@@ -211,6 +220,59 @@ void drawBottomPageBar(size_t activeIdx) {
   }
 }
 
+uint32_t helpMaxScrollPx(uint16_t msgWidth) {
+  return (msgWidth > kHelpViewWidth)
+             ? static_cast<uint32_t>(msgWidth - kHelpViewWidth + kHelpScrollTailPx)
+             : 0u;
+}
+
+uint32_t helpCycleSteps(uint16_t msgWidth) {
+  return kHelpPauseSteps + helpMaxScrollPx(msgWidth) + kHelpPauseSteps;
+}
+
+void makeOneLineSettingTitle(SettingsItemIndex idx, char *buf, size_t cap) {
+  const char *label =
+      (idx == SettingsItemIndex::LockingMode) ? "Button lock" : hs02SettingLabel(idx);
+
+  size_t n = 0;
+  while (*label && n + 1u < cap) {
+    buf[n++] = (*label == '\n') ? ' ' : *label;
+    ++label;
+  }
+  buf[n] = '\0';
+}
+
+void drawSettingHelpMarquee(SettingsItemIndex idx, const CategoryTheme &theme,
+                            TickType_t helpElapsedTicks) {
+  char title[32];
+  makeOneLineSettingTitle(idx, title, sizeof(title));
+
+  char value[32];
+  formatSettingSummaryPill(idx, value, sizeof(value));
+  const int16_t pillX = drawPillRight(152, 5, 19, theme.dim, Color::kNone, value, theme.fg);
+  Display::drawSpaceGroteskRgb(title, kTitleX, 5, 15, Color::kMuted, kTitleX,
+                               static_cast<int16_t>(pillX - 3));
+
+  const char    *help      = hs02SettingHelp(idx);
+  const uint16_t msgW      = Display::measureSpaceGrotesk(help, 15);
+  const uint32_t maxScroll = helpMaxScrollPx(msgW);
+  const uint32_t cycle     = helpCycleSteps(msgW);
+  const uint32_t step      = (helpElapsedTicks / kHelpStepTicks) % (cycle ? cycle : 1u);
+  const uint32_t phase =
+      (step < kHelpPauseSteps)
+          ? 0u
+          : ((step < kHelpPauseSteps + maxScroll) ? (step - kHelpPauseSteps) : maxScroll);
+
+  const int16_t textX = static_cast<int16_t>(16 - static_cast<int32_t>(phase));
+  const int16_t thumbX =
+      static_cast<int16_t>(10u + ((maxScroll == 0u) ? 0u : (phase * kHelpThumbTravel) / maxScroll));
+
+  Display::drawBoxRgb(10, 30, 142, 2, Color::kTrack);
+  Display::drawBoxRgb(thumbX, 30, kHelpThumbWidth, 2, theme.fg);
+  drawBox(10, 38, 144, 32, Color::kCell, Color::kBorder, 4);
+  Display::drawSpaceGroteskRgb(help, textX, 44, 15, Color::kInk, 15, 149);
+}
+
 } // namespace
 
 void drawCategoryMenu(size_t categoryIndex) {
@@ -245,6 +307,44 @@ void drawCategoryMenu(size_t categoryIndex) {
   }
 
   drawBottomPageBar(idx);
+}
+
+void drawSettingSubScreen(SettingsItemIndex idx, uint8_t mainEntry, uint8_t menuLen, uint8_t visIdx,
+                          bool showHelp, TickType_t elapsedSinceButton) {
+  const CategoryTheme &theme = categoryTheme(mainEntry);
+  const uint16_t active = (idx == SettingsItemIndex::SettingsReset) ? Color::kRedline : theme.fg;
+  drawSegmentedRail(menuLen, visIdx, active, theme.dim);
+
+  if (!showHelp) {
+    const char *label =
+        (idx == SettingsItemIndex::LockingMode) ? "Button lock" : hs02SettingLabel(idx);
+    bool hasNL = false;
+    for (const char *p = label; *p; ++p) {
+      if (*p == '\n') {
+        hasNL = true;
+        break;
+      }
+    }
+
+    Display::drawSpaceGroteskRgb(label, kTitleX, hasNL ? 4 : 5, 15, Color::kInk, kTitleX, 153);
+    drawCustomSettingScreen(idx);
+    return;
+  }
+
+  const TickType_t helpElapsed =
+      (elapsedSinceButton > kHelpLeadInTicks) ? (elapsedSinceButton - kHelpLeadInTicks) : 0u;
+  drawSettingHelpMarquee(idx, theme, helpElapsed);
+}
+
+TickType_t helpMarqueeMinTimeoutTicks(SettingsItemIndex idx) {
+  const char *help = hs02SettingHelp(idx);
+  if (help[0] == '\0') {
+    return 0;
+  }
+
+  const uint16_t msgW       = Display::measureSpaceGrotesk(help, 15);
+  const uint32_t totalSteps = kHelpMinRunThroughs * helpCycleSteps(msgW);
+  return kHelpLeadInTicks + static_cast<TickType_t>(totalSteps) * kHelpStepTicks;
 }
 
 } // namespace ChaosHud

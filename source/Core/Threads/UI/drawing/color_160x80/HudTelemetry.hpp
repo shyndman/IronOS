@@ -39,15 +39,18 @@ bool isSettingsButtonsReversed();
 
 // Top-level Chaos Telemetry screen entrypoints invoked by UI logic / settingsGUI.
 void drawCategoryMenu(size_t categoryIndex);
-bool drawPowerSetting(SettingsItemIndex idx);
-bool drawSolderingSetting(SettingsItemIndex idx);
-bool drawSleepSetting(SettingsItemIndex idx);
-bool drawUiSetting(SettingsItemIndex idx);
-bool drawAdvancedSetting(SettingsItemIndex idx);
-bool drawCustomSettingScreen(SettingsItemIndex idx);
-void formatSettingSummaryPill(SettingsItemIndex idx, char *outBuf, size_t outSize);
-void drawConfirmationModal(bool isResetSettings);
-void drawActiveVinCalibrate(uint16_t voltageX10, uint16_t divisor);
+void drawSettingSubScreen(SettingsItemIndex idx, uint8_t mainEntry, uint8_t menuLen, uint8_t visIdx,
+                          bool showHelp, TickType_t elapsedSinceButton);
+TickType_t helpMarqueeMinTimeoutTicks(SettingsItemIndex idx);
+bool       drawPowerSetting(SettingsItemIndex idx);
+bool       drawSolderingSetting(SettingsItemIndex idx);
+bool       drawSleepSetting(SettingsItemIndex idx);
+bool       drawUiSetting(SettingsItemIndex idx);
+bool       drawAdvancedSetting(SettingsItemIndex idx);
+bool       drawCustomSettingScreen(SettingsItemIndex idx);
+void       formatSettingSummaryPill(SettingsItemIndex idx, char *outBuf, size_t outSize);
+void       drawConfirmationModal(bool isResetSettings);
+void       drawActiveVinCalibrate(uint16_t voltageX10, uint16_t divisor);
 
 } // namespace ChaosHud
 

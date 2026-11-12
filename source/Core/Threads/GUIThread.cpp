@@ -64,8 +64,19 @@ OperatingMode guiHandleDraw(void) {
   const TickType_t     now                 = xTaskGetTickCount();
   const uint32_t       tipTemp             = TipThermoModel::getTipInC();
 
-  const TickType_t idleTimeoutTicks = (TickType_t)getSettingValue(SettingsOptions::DisplayIdleTimeoutSeconds) * TICKS_SECOND;
-  const bool       isIdleTimedOut   = (buttons == BUTTON_NONE) && ((now - lastMovementTime) > idleTimeoutTicks) && ((now - lastButtonTime) > idleTimeoutTicks);
+  TickType_t idleTimeoutTicks =
+      static_cast<TickType_t>(getSettingValue(SettingsOptions::DisplayIdleTimeoutSeconds)) *
+      TICKS_SECOND;
+  if (currentOperatingMode == OperatingMode::SettingsMenu) {
+    const TickType_t helpFloorTicks = minSettingsDisplayTimeoutTicks(&context);
+    if (helpFloorTicks > idleTimeoutTicks) {
+      idleTimeoutTicks = helpFloorTicks;
+    }
+  }
+
+  const bool isIdleTimedOut = (buttons == BUTTON_NONE) &&
+                              ((now - lastMovementTime) > idleTimeoutTicks) &&
+                              ((now - lastButtonTime) > idleTimeoutTicks);
 
   if (isIdleTimedOut) {
     if (!displayIsOff) {

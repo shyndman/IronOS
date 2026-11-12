@@ -11,56 +11,25 @@
 
 #ifdef LCD_160x80
 uint16_t getMenuLength(const menuitem *menu, const uint16_t stop);
-static void drawSettingTitle(const char *label, int16_t x, int16_t y, uint16_t color, int16_t clipRight) {
-  Display::drawSpaceGroteskRgb(label, x, y, 15, color, x, clipRight);
-}
 
-static uint8_t makeOneLineSettingName(SettingsItemIndex idx, char *buf, uint8_t cap) {
-  const char *label = hs02SettingLabel(idx);
-  if (idx == SettingsItemIndex::LockingMode) {
-    label = "Button lock";
+TickType_t minSettingsDisplayTimeoutTicks(const guiContext *cxt) {
+  const uint16_t mainEntry = cxt->scratch_state.state1;
+  const uint16_t subEntry  = cxt->scratch_state.state2;
+  if (subEntry == 0u || mainEntry >= 5u) {
+    return 0;
   }
 
-  uint8_t n = 0;
-  while (*label && n + 1u < cap) {
-    buf[n++] = (*label == '\n') ? ' ' : *label;
-    ++label;
+  const menuitem &item = subSettingsMenus[mainEntry][subEntry - 1u];
+  if (item.description == 0u) {
+    return 0;
   }
-  buf[n] = '\0';
-  return n;
-}
 
-static void renderHs02Help(const menuitem *item, guiContext *cxt, const ChaosHud::CategoryTheme &theme) {
-  cxt->scratch_state.state6 = 1;
-  char title[32];
-  makeOneLineSettingName(item->shortDescriptionIndex, title, sizeof(title));
-  char value[32];
-  ChaosHud::formatSettingSummaryPill(item->shortDescriptionIndex, value, sizeof(value));
-  const int16_t pillX = ChaosHud::drawPillRight(152, 5, 19, theme.dim, ChaosHud::Color::kNone, value, theme.fg);
-  drawSettingTitle(title, 10, 5, ChaosHud::Color::kMuted, static_cast<int16_t>(pillX - 3));
-
-  const char *help = hs02SettingHelp(item->shortDescriptionIndex);
-  constexpr uint16_t viewW = 136;
-  constexpr uint16_t thumbW = 38;
-  constexpr uint16_t travel = 142u - thumbW;
-  const uint16_t msgW = Display::measureSpaceGrotesk(help, 15);
-  const TickType_t elapsed = (xTaskGetTickCount() - lastButtonTime) - HELP_TEXT_TIMEOUT_TICKS;
-  const uint32_t maxScroll = (msgW > viewW) ? static_cast<uint32_t>(msgW - viewW + 12u) : 0u;
-  constexpr uint32_t kPauseSteps = 25u;
-  const uint32_t cycle = kPauseSteps + maxScroll + kPauseSteps;
-  const uint32_t step = (elapsed / (TICKS_100MS / 3u)) % (cycle ? cycle : 1u);
-  const uint32_t phase = (step < kPauseSteps) ? 0u : ((step < kPauseSteps + maxScroll) ? (step - kPauseSteps) : maxScroll);
-  const int16_t textX = static_cast<int16_t>(16 - static_cast<int32_t>(phase));
-  const int16_t thumbX = static_cast<int16_t>(10u + ((maxScroll == 0u) ? 0u : (phase * travel) / maxScroll));
-  Display::drawBoxRgb(10, 30, 142, 2, ChaosHud::Color::kTrack);
-  Display::drawBoxRgb(thumbX, 30, thumbW, 2, theme.fg);
-  ChaosHud::drawBox(10, 38, 144, 32, ChaosHud::Color::kCell, ChaosHud::Color::kBorder, 4);
-  Display::drawSpaceGroteskRgb(help, textX, 44, 15, ChaosHud::Color::kInk, 15, 149);
+  return ChaosHud::helpMarqueeMinTimeoutTicks(item.shortDescriptionIndex);
 }
 
 static void renderHs02Setting(const menuitem *item, guiContext *cxt) {
   const uint16_t mainEntry = cxt->scratch_state.state1;
-  const uint16_t subEntry = cxt->scratch_state.state2;
+  const uint16_t subEntry  = cxt->scratch_state.state2;
   Display::setColorMode(true);
   Display::clearScreenColor();
   if (subEntry == 0u) {
@@ -68,27 +37,16 @@ static void renderHs02Setting(const menuitem *item, guiContext *cxt) {
     return;
   }
 
-  const uint8_t menuLen = static_cast<uint8_t>(getMenuLength(subSettingsMenus[mainEntry], 128));
-  const uint8_t visIdx = static_cast<uint8_t>(getMenuLength(subSettingsMenus[mainEntry], subEntry) - 1u);
-  const ChaosHud::CategoryTheme &theme = ChaosHud::categoryTheme(mainEntry);
-  const uint16_t active = (item->shortDescriptionIndex == SettingsItemIndex::SettingsReset) ? ChaosHud::Color::kRedline : theme.fg;
-  ChaosHud::drawSegmentedRail(menuLen, visIdx, active, theme.dim);
-
-  if ((xTaskGetTickCount() - lastButtonTime < HELP_TEXT_TIMEOUT_TICKS) || item->description == 0u) {
-    const SettingsItemIndex idx   = item->shortDescriptionIndex;
-    const char             *label = (idx == SettingsItemIndex::LockingMode) ? "Button lock" : hs02SettingLabel(idx);
-    bool                    hasNL = false;
-    for (const char *p = label; *p; ++p) {
-      if (*p == '\n') {
-        hasNL = true;
-        break;
-      }
-    }
-    drawSettingTitle(label, 10, hasNL ? 4 : 5, ChaosHud::Color::kInk, 153);
-    ChaosHud::drawCustomSettingScreen(idx);
-  } else {
-    renderHs02Help(item, cxt, theme);
+  const uint8_t    menuLen  = static_cast<uint8_t>(getMenuLength(subSettingsMenus[mainEntry], 128));
+  const uint8_t    visIdx   = static_cast<uint8_t>(getMenuLength(subSettingsMenus[mainEntry], subEntry) - 1u);
+  const TickType_t elapsed  = xTaskGetTickCount() - lastButtonTime;
+  const bool       showHelp = (elapsed >= HELP_TEXT_TIMEOUT_TICKS) && (item->description != 0u);
+  if (showHelp) {
+    cxt->scratch_state.state6 = 1;
   }
+
+  ChaosHud::drawSettingSubScreen(item->shortDescriptionIndex, static_cast<uint8_t>(mainEntry),
+                                 menuLen, visIdx, showHelp, elapsed);
 }
 #endif // LCD_160x80
 

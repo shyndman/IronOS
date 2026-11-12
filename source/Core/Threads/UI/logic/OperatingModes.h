@@ -73,6 +73,9 @@ OperatingMode gui_solderingMode(const ButtonState buttons, guiContext *cxt);    
 OperatingMode gui_solderingTempAdjust(const ButtonState buttons, guiContext *cxt);   // For adjusting the setpoint temperature of the iron
 OperatingMode drawHomeScreen(const ButtonState buttons, guiContext *cxt);            // IDLE / Home screen
 OperatingMode gui_SettingsMenu(const ButtonState buttons, guiContext *cxt);          //
+#ifdef LCD_160x80
+TickType_t minSettingsDisplayTimeoutTicks(const guiContext *cxt);
+#endif
 
 OperatingMode gui_solderingProfileMode(const ButtonState buttons, guiContext *cxt); // Profile mode for hot likely-not-so-pointy tool
 OperatingMode performCJCC(const ButtonState buttons, guiContext *cxt);              // Used to calibrate the Cold Junction offset

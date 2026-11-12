@@ -307,7 +307,9 @@ void startGUITask(void const *argument) {
   Display::setInverseDisplay(getSettingValue(SettingsOptions::DisplayInversion));
 
   bool buttonLockout = false;
+#ifndef LCD_160x80
   ui_pre_render_assets();
+#endif
   getTipRawTemp(1); // reset filter
   memset(&context, 0, sizeof(context));
 

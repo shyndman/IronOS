@@ -139,12 +139,18 @@ OperatingMode gui_solderingProfileMode(const ButtonState buttons, guiContext *cx
   }
 
   // Draw in the screen details
+#ifdef LCD_160x80
+  ui_draw_soldering_profile_advanced(tipTemp, profileCurrentTargetTemp, phaseElapsedSeconds,
+                                     cxt->scratch_state.state1, cxt->scratch_state.state2);
+#else
   if (getSettingValue(SettingsOptions::DetailedSoldering)) {
-    ui_draw_soldering_profile_advanced(tipTemp, profileCurrentTargetTemp, phaseElapsedSeconds, cxt->scratch_state.state1, cxt->scratch_state.state2);
+    ui_draw_soldering_profile_advanced(tipTemp, profileCurrentTargetTemp, phaseElapsedSeconds,
+                                       cxt->scratch_state.state1, cxt->scratch_state.state2);
     ui_draw_soldering_power_status(false);
   } else {
     ui_draw_soldering_basic_status(false);
   }
+#endif
 
   // Update the setpoints for the temperature
   if (getSettingValue(SettingsOptions::TemperatureInF)) {

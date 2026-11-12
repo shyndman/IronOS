@@ -17,6 +17,7 @@
 #include "ui_drawing.hpp"
 #ifdef LCD_160x80
 #include "Hs02UiAssets.hpp"
+#include "HudTelemetry.hpp"
 #include <stdio.h>
 #endif
 
@@ -517,18 +518,7 @@ static int userConfirmation(const char *message) {
 #ifdef LCD_160x80
     (void)tickStart;
     Display::setColorMode(true);
-    Display::setColorPalette(Hs02UI::kPaletteMenuAdvanced);
-    Display::clearScreenColor();
-    if (message == translatedString(Tr->SettingsResetWarning)) {
-      Display::drawSpaceGrotesk("Reset all settings?", 11, 7, 15, 0);
-    } else {
-      Display::drawSpaceGrotesk("Tip & handle cold\nbefore reboot?", 11, 5, 15, 0);
-    }
-    Display::drawSpaceGrotesk("OK", 11, 48, 19, 1);
-    Display::drawAaBitmapColor(Hs02UI::kIconResetWrench.data, Hs02UI::kIconResetWrench.width, Hs02UI::kIconResetWrench.height, 39, 49, 1);
-    Display::drawAaBitmapColor(Hs02UI::kIconHoldDots.data, Hs02UI::kIconHoldDots.width, Hs02UI::kIconHoldDots.height, 107, 47, 1);
-    Display::drawSpaceGrotesk("OK", 101, 48, 19, 1);
-    Display::drawAaBitmapColor(Hs02UI::kIconCancelCircle.data, Hs02UI::kIconCancelCircle.width, Hs02UI::kIconCancelCircle.height, 129, 51, 1);
+    ChaosHud::drawConfirmationModal(message == translatedString(Tr->SettingsResetWarning));
     ButtonState buttons = getButtonState();
     const bool  swap    = Display::getRotation() ^ static_cast<bool>(getSettingValue(SettingsOptions::ReverseButtonSettings));
     if (buttons == BUTTON_OK_SHORT || (!swap && buttons == BUTTON_B_SHORT) || (swap && buttons == BUTTON_F_SHORT)) {
@@ -682,7 +672,7 @@ const char *hs02SettingHelp(SettingsItemIndex idx) {
   case SettingsItemIndex::Brightness:
     return "Adjust the OLED screen brightness";
   case SettingsItemIndex::DisplayIdleTimeout:
-    return "Turn off screen and button lights after inactivity (s=seconds)";
+    return "Turn off LCD screen after inactivity (s=seconds)";
   case SettingsItemIndex::LOGOTime:
     return "Set boot logo duration (s=seconds)";
   case SettingsItemIndex::PowerLimit:
@@ -1451,18 +1441,9 @@ static void setCalibrateVIN(void) {
   for (;;) {
 #ifdef LCD_160x80
     Display::setColorMode(true);
-    Display::setColorPalette(Hs02UI::kPaletteMenuAdvanced);
-    Display::clearScreenColor();
-    Display::drawRoundedBarColor(0, 0, 3, 80, 1);
-    uint16_t voltage = getInputVoltageX10(getSettingValue(SettingsOptions::VoltageDiv), 0);
-    char     vBuf[24];
-    snprintf(vBuf, sizeof(vBuf), "Input: %u.%u V", static_cast<unsigned>(voltage / 10), static_cast<unsigned>(voltage % 10));
-    Display::drawSpaceGrotesk(vBuf, 11, 7, 15, 0);
-    Display::drawAaBitmapColor(Hs02UI::kIconChevronLeft.data, Hs02UI::kIconChevronLeft.width, Hs02UI::kIconChevronLeft.height, 10, 50, 1);
-    char divBuf[12];
-    snprintf(divBuf, sizeof(divBuf), "%u", static_cast<unsigned>(getSettingValue(SettingsOptions::VoltageDiv)));
-    Display::drawSpaceGrotesk(divBuf, 34, 46, 19, 1);
-    Display::drawAaBitmapColor(Hs02UI::kIconChevronRight.data, Hs02UI::kIconChevronRight.width, Hs02UI::kIconChevronRight.height, 137, 50, 1);
+    const uint16_t divisor = getSettingValue(SettingsOptions::VoltageDiv);
+    const uint16_t voltage = getInputVoltageX10(divisor, 0);
+    ChaosHud::drawActiveVinCalibrate(voltage, divisor);
 
     const ButtonState btn  = getButtonState();
     const bool        swap = Display::getRotation() ^ static_cast<bool>(getSettingValue(SettingsOptions::ReverseButtonSettings));
@@ -1573,34 +1554,7 @@ static void setResetSettings(void) {
 }
 
 #ifdef LCD_160x80
-static void displayMenu(size_t index) {
-  static const uint16_t *const kPalettes[5] = {
-      Hs02UI::kPaletteMenuPower,
-      Hs02UI::kPaletteMenuSolder,
-      Hs02UI::kPaletteMenuSleep,
-      Hs02UI::kPaletteMenuUI,
-      Hs02UI::kPaletteMenuAdvanced,
-  };
-  static const char *const kTitles[5] = {
-      "Power\nsettings",
-      "Soldering\nsettings",
-      "Sleep\nmode",
-      "User\ninterface",
-      "Advanced\nsettings",
-  };
-  static const Hs02UI::Icon2bpp *const kIcons[5] = {
-      &Hs02UI::kIconZap,
-      &Hs02UI::kIconFlame,
-      &Hs02UI::kIconMoonStar,
-      &Hs02UI::kIconPanelsTopLeft,
-      &Hs02UI::kIconCircuitBoard,
-  };
-  const size_t idx = index < 5 ? index : 0;
-  Display::setColorPalette(kPalettes[idx]);
-  Display::drawAaBitmapColor(Hs02UI::kBadgeCircle46.data, Hs02UI::kBadgeCircle46.width, Hs02UI::kBadgeCircle46.height, 108, 17, 1);
-  Display::drawAaBitmapColor(kIcons[idx]->data, kIcons[idx]->width, kIcons[idx]->height, 117, 26, 2);
-  Display::drawSpaceGrotesk(kTitles[idx], 8, 16, 17, 0);
-}
+static void displayMenu(size_t index) { ChaosHud::drawCategoryMenu(index); }
 #else
 // Indicates whether a menu transition is in progress, so that the menu icon
 // animation is paused during the transition.

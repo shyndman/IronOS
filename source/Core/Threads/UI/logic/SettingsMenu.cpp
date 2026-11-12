@@ -3,26 +3,95 @@
 #include "ScrollMessage.hpp"
 #ifdef LCD_160x80
 #include "Hs02UiAssets.hpp"
+#include "HudTelemetry.hpp"
 #define HELP_TEXT_TIMEOUT_TICKS (TICKS_SECOND * 4)
 #else
 #define HELP_TEXT_TIMEOUT_TICKS (TICKS_SECOND * 3)
 #endif
-/*
- * The settings menu is the most complex bit of GUI code we have
- * The menu consists of a two tier menu
- * Main menu -> Categories
- * Secondary menu -> Settings
- *
- * For each entry in the menu
- */
 
-/**
- * Prints two small lines (or one line for CJK) of short description for
- * setting items and prepares cursor after it.
- * @param settingsItemIndex Index of the setting item.
- * @param cursorCharPosition Custom cursor char position to set after printing
- * description.
- */
+#ifdef LCD_160x80
+uint16_t getMenuLength(const menuitem *menu, const uint16_t stop);
+static void drawSettingTitle(const char *label, int16_t x, int16_t y, uint16_t color, int16_t clipRight) {
+  Display::drawSpaceGroteskRgb(label, x, y, 15, color, x, clipRight);
+}
+
+static uint8_t makeOneLineSettingName(SettingsItemIndex idx, char *buf, uint8_t cap) {
+  const char *label = hs02SettingLabel(idx);
+  if (idx == SettingsItemIndex::LockingMode) {
+    label = "Button lock";
+  }
+
+  uint8_t n = 0;
+  while (*label && n + 1u < cap) {
+    buf[n++] = (*label == '\n') ? ' ' : *label;
+    ++label;
+  }
+  buf[n] = '\0';
+  return n;
+}
+
+static void renderHs02Help(const menuitem *item, guiContext *cxt, const ChaosHud::CategoryTheme &theme) {
+  cxt->scratch_state.state6 = 1;
+  char title[32];
+  makeOneLineSettingName(item->shortDescriptionIndex, title, sizeof(title));
+  char value[32];
+  ChaosHud::formatSettingSummaryPill(item->shortDescriptionIndex, value, sizeof(value));
+  const int16_t pillX = ChaosHud::drawPillRight(152, 5, 19, theme.dim, ChaosHud::Color::kNone, value, theme.fg);
+  drawSettingTitle(title, 10, 5, ChaosHud::Color::kMuted, static_cast<int16_t>(pillX - 3));
+
+  const char *help = hs02SettingHelp(item->shortDescriptionIndex);
+  constexpr uint16_t viewW = 136;
+  constexpr uint16_t thumbW = 38;
+  constexpr uint16_t travel = 142u - thumbW;
+  const uint16_t msgW = Display::measureSpaceGrotesk(help, 15);
+  const TickType_t elapsed = (xTaskGetTickCount() - lastButtonTime) - HELP_TEXT_TIMEOUT_TICKS;
+  const uint32_t maxScroll = (msgW > viewW) ? static_cast<uint32_t>(msgW - viewW + 12u) : 0u;
+  constexpr uint32_t kPauseSteps = 25u;
+  const uint32_t cycle = kPauseSteps + maxScroll + kPauseSteps;
+  const uint32_t step = (elapsed / (TICKS_100MS / 3u)) % (cycle ? cycle : 1u);
+  const uint32_t phase = (step < kPauseSteps) ? 0u : ((step < kPauseSteps + maxScroll) ? (step - kPauseSteps) : maxScroll);
+  const int16_t textX = static_cast<int16_t>(16 - static_cast<int32_t>(phase));
+  const int16_t thumbX = static_cast<int16_t>(10u + ((maxScroll == 0u) ? 0u : (phase * travel) / maxScroll));
+  Display::drawBoxRgb(10, 30, 142, 2, ChaosHud::Color::kTrack);
+  Display::drawBoxRgb(thumbX, 30, thumbW, 2, theme.fg);
+  ChaosHud::drawBox(10, 38, 144, 32, ChaosHud::Color::kCell, ChaosHud::Color::kBorder, 4);
+  Display::drawSpaceGroteskRgb(help, textX, 44, 15, ChaosHud::Color::kInk, 15, 149);
+}
+
+static void renderHs02Setting(const menuitem *item, guiContext *cxt) {
+  const uint16_t mainEntry = cxt->scratch_state.state1;
+  const uint16_t subEntry = cxt->scratch_state.state2;
+  Display::setColorMode(true);
+  Display::clearScreenColor();
+  if (subEntry == 0u) {
+    item->draw();
+    return;
+  }
+
+  const uint8_t menuLen = static_cast<uint8_t>(getMenuLength(subSettingsMenus[mainEntry], 128));
+  const uint8_t visIdx = static_cast<uint8_t>(getMenuLength(subSettingsMenus[mainEntry], subEntry) - 1u);
+  const ChaosHud::CategoryTheme &theme = ChaosHud::categoryTheme(mainEntry);
+  const uint16_t active = (item->shortDescriptionIndex == SettingsItemIndex::SettingsReset) ? ChaosHud::Color::kRedline : theme.fg;
+  ChaosHud::drawSegmentedRail(menuLen, visIdx, active, theme.dim);
+
+  if ((xTaskGetTickCount() - lastButtonTime < HELP_TEXT_TIMEOUT_TICKS) || item->description == 0u) {
+    const SettingsItemIndex idx   = item->shortDescriptionIndex;
+    const char             *label = (idx == SettingsItemIndex::LockingMode) ? "Button lock" : hs02SettingLabel(idx);
+    bool                    hasNL = false;
+    for (const char *p = label; *p; ++p) {
+      if (*p == '\n') {
+        hasNL = true;
+        break;
+      }
+    }
+    drawSettingTitle(label, 10, hasNL ? 4 : 5, ChaosHud::Color::kInk, 153);
+    ChaosHud::drawCustomSettingScreen(idx);
+  } else {
+    renderHs02Help(item, cxt, theme);
+  }
+}
+#endif // LCD_160x80
+
 static void printShortDescription(SettingsItemIndex settingsItemIndex, uint16_t cursorCharPosition) {
 #ifdef LCD_160x80
   (void)settingsItemIndex;
@@ -38,92 +107,11 @@ static void printShortDescription(SettingsItemIndex settingsItemIndex, uint16_t 
 #endif
 }
 
-#ifdef LCD_160x80
-static const uint16_t *hs02MenuPalette(uint16_t mainEntry) {
-  static const uint16_t *const kPalettes[5] = {
-      Hs02UI::kPaletteMenuPower,
-      Hs02UI::kPaletteMenuSolder,
-      Hs02UI::kPaletteMenuSleep,
-      Hs02UI::kPaletteMenuUI,
-      Hs02UI::kPaletteMenuAdvanced,
-  };
-  return kPalettes[mainEntry < 5 ? mainEntry : 0];
-}
-#endif
 
-// Render a menu, based on the position given
-// This will either draw the menu item, or the help text depending on how long its been since button press
 void render_menu(const menuitem *item, guiContext *cxt) {
 #ifdef LCD_160x80
-  const uint16_t mainEntry = cxt->scratch_state.state1;
-  const uint16_t subEntry  = cxt->scratch_state.state2;
-  if (subEntry == 0) {
-    item->draw();
-    return;
-  }
-
-  Display::setColorPalette(hs02MenuPalette(mainEntry));
-  Display::drawRoundedBarColor(0, 0, 3, 80, 1);
-
-  if ((xTaskGetTickCount() - lastButtonTime < HELP_TEXT_TIMEOUT_TICKS) || item->description == 0) {
-    bool hasNL = false;
-    if (item->shortDescriptionSize > 0) {
-      const char *label = hs02SettingLabel(item->shortDescriptionIndex);
-      for (const char *p = label; *p; ++p) {
-        if (*p == '\n') {
-          hasNL = true;
-          break;
-        }
-      }
-      Display::drawSpaceGrotesk(label, 11, hasNL ? 5 : 7, 15, 0);
-    }
-    hs02SetTwoLineSettingLayout(hasNL);
-    const SettingsItemIndex idx        = item->shortDescriptionIndex;
-    const bool              isCheckbox = (idx == SettingsItemIndex::CooldownBlink || idx == SettingsItemIndex::ReverseButtonTempChange ||
-                             idx == SettingsItemIndex::ReverseButtonSettings || idx == SettingsItemIndex::CalibrateCJC);
-    const int16_t           chevronY   = hasNL ? 52 : 50;
-    if (idx == SettingsItemIndex::VoltageCalibration) {
-      Display::drawSpaceGrotesk("Calibrate", 11, hasNL ? 48 : 46, 19, 1);
-      Display::drawAaBitmapColor(Hs02UI::kIconChevronRight.data, Hs02UI::kIconChevronRight.width, Hs02UI::kIconChevronRight.height, 137, chevronY, 1);
-    } else if (idx == SettingsItemIndex::SettingsReset) {
-      Display::drawSpaceGrotesk("Reset", 11, hasNL ? 48 : 46, 19, 1);
-      Display::drawAaBitmapColor(Hs02UI::kIconChevronRight.data, Hs02UI::kIconChevronRight.width, Hs02UI::kIconChevronRight.height, 137, chevronY, 1);
-    } else if (isCheckbox) {
-      item->draw();
-    } else {
-      Display::drawAaBitmapColor(Hs02UI::kIconChevronLeft.data, Hs02UI::kIconChevronLeft.width, Hs02UI::kIconChevronLeft.height, 10, chevronY, 1);
-      item->draw();
-      Display::drawAaBitmapColor(Hs02UI::kIconChevronRight.data, Hs02UI::kIconChevronRight.width, Hs02UI::kIconChevronRight.height, 137, chevronY, 1);
-    }
-  } else {
-    uint16_t *isRenderingHelp = &(cxt->scratch_state.state6);
-    *isRenderingHelp          = 1;
-    const char      *helpText = hs02SettingHelp(item->shortDescriptionIndex);
-    const uint16_t   msgWidth = Display::measureSpaceGrotesk(helpText, 19);
-    const TickType_t tickOff  = (xTaskGetTickCount() - lastButtonTime) - HELP_TEXT_TIMEOUT_TICKS;
-    constexpr TickType_t stepDiv = TICKS_100MS / 5;
-    const uint32_t   pausePx  = ((TICKS_SECOND * 4 / 5) * 7u) / (5u * stepDiv);
-    const uint32_t   gapPx    = ((TICKS_SECOND / 2) * 7u) / (5u * stepDiv);
-    const uint32_t   outPx    = msgWidth + 8u;
-    const uint32_t   inPx     = 149u;
-    const uint32_t   cyclePx  = pausePx + outPx + gapPx + inPx;
-    const uint32_t   posPx    = ((tickOff * 7u) / (5u * stepDiv)) % cyclePx;
-    int16_t          drawX    = 11;
-    if (posPx < pausePx) {
-      drawX = 11;
-    } else if (posPx < pausePx + outPx) {
-      drawX = 11 - static_cast<int16_t>(posPx - pausePx);
-    } else if (posPx < pausePx + outPx + gapPx) {
-      drawX = LCD_WIDTH;
-    } else {
-      drawX = LCD_WIDTH - static_cast<int16_t>(posPx - (pausePx + outPx + gapPx));
-    }
-    if (drawX < LCD_WIDTH) {
-      Display::drawSpaceGrotesk(helpText, drawX, 28, 19, 0, 4, LCD_WIDTH);
-    }
-  }
+  renderHs02Setting(item, cxt);
 #else
-  // If recent interaction or not help text draw the entry
   if ((xTaskGetTickCount() - lastButtonTime < HELP_TEXT_TIMEOUT_TICKS) || item->description == 0) {
 
     if (item->shortDescriptionSize > 0) {
@@ -134,7 +122,6 @@ void render_menu(const menuitem *item, guiContext *cxt) {
 
     uint16_t *isRenderingHelp = &(cxt->scratch_state.state6);
     *isRenderingHelp          = 1;
-    // Draw description
     const char *description = translatedString(Tr->SettingsDescriptions[item->description - 1]);
     drawScrollingText(description, (xTaskGetTickCount() - lastButtonTime) - HELP_TEXT_TIMEOUT_TICKS);
   }
@@ -205,10 +192,6 @@ OperatingMode moveToNextEntry(guiContext *cxt) {
 }
 
 OperatingMode gui_SettingsMenu(const ButtonState buttons, guiContext *cxt) {
-  // Render out the current settings menu
-  // State 1 -> Root menu
-  // State 2 -> Sub entry
-  // Draw main entry if sub-entry is 0, otherwise draw sub-entry
 
   uint16_t *mainEntry              = &(cxt->scratch_state.state1);
   uint16_t *subEntry               = &(cxt->scratch_state.state2);
@@ -218,36 +201,27 @@ OperatingMode gui_SettingsMenu(const ButtonState buttons, guiContext *cxt) {
   uint16_t *isRenderingHelp        = &(cxt->scratch_state.state6);
 
   const menuitem *currentMenu;
-  // Draw the currently on screen item
   uint16_t currentScreen;
   if (*subEntry == 0) {
-    // Drawing main menu
     currentMenu   = rootSettingsMenu;
     currentScreen = *mainEntry;
   } else {
-    // Drawing sub menu
     currentMenu   = subSettingsMenus[*mainEntry];
     currentScreen = (*subEntry) - 1;
   }
   render_menu(&(currentMenu[currentScreen]), cxt);
 
-  // Update the cached menu length if unknown
   if (*currentMenuLength == 0) {
-    // We walk the current menu to find the length
     *currentMenuLength = getMenuLength(currentMenu, 128 /* Max length of any menu*/);
   }
 
 #ifndef LCD_160x80
   if (*isRenderingHelp == 0) {
-    //  Draw scroll
-
-    // Get virtual pos by counting entries from start to _here_
     uint16_t currentVirtualPosition = getMenuLength(currentMenu, currentScreen + 1);
     if (currentVirtualPosition > 0) {
       currentVirtualPosition--;
     }
 
-    // The height of the indicator is screen res height / total menu entries
     uint8_t indicatorHeight = DISPLAY_HEIGHT / *currentMenuLength;
     if (indicatorHeight == 0) {
       indicatorHeight = 1; // always at least 1 pixel
@@ -257,18 +231,15 @@ OperatingMode gui_SettingsMenu(const ButtonState buttons, guiContext *cxt) {
 
     bool showScrollbar = true;
 
-    // Store if its the last option for this setting
     bool isLastOptionForSetting = false;
     if ((int)currentMenu[currentScreen].autoSettingOption < (int)SettingsOptions::SettingsOptionsLength) {
       isLastOptionForSetting = isLastSettingValue(currentMenu[currentScreen].autoSettingOption);
     }
 
-    // Last settings menu entry, reset scroll show back so it flashes
     if (isLastOptionForSetting) {
       showScrollbar = false;
     }
 
-    // Or Flash it
     showScrollbar |= (xTaskGetTickCount() % (TICKS_SECOND / 4) < (TICKS_SECOND / 8));
 
     if (showScrollbar) {
@@ -277,7 +248,6 @@ OperatingMode gui_SettingsMenu(const ButtonState buttons, guiContext *cxt) {
   }
 #endif
 
-  // Now handle user button input
   auto callIncrementHandler = [&]() {
     if (currentMenu[currentScreen].incrementHandler != nullptr) {
       currentMenu[currentScreen].incrementHandler();

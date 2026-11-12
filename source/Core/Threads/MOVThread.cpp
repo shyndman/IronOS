@@ -45,12 +45,41 @@ static int32_t movementThresholdForSensitivity(uint16_t sensitivity) {
 #define MOVFilter      8
 #define MOV_POLL_DELAY TICKS_100MS
 
-static int32_t movementThresholdForSensitivity(uint16_t sensitivity) { return 1500 + (9 * 200) - static_cast<int32_t>(sensitivity) * 200; }
+static int32_t movementThresholdForSensitivity(uint16_t sensitivity) {
+  return 1500 + (9 * 200) - static_cast<int32_t>(sensitivity) * 200;
+}
 #endif
 
 uint8_t             accelInit        = 0;
 volatile TickType_t lastMovementTime = 0;
-// Order matters for probe order, some Acceleromters do NOT like bad reads; and we have a bunch of overlap of addresses
+extern "C" {
+volatile uint16_t imuLatestDelta      = 0;
+volatile uint16_t imuWakeThreshold    = 0;
+volatile uint16_t imuDeltaHistory[12] = {0};
+volatile uint8_t  imuHistoryHead      = 0;
+}
+
+static uint16_t clampImuU16(int32_t val) {
+  if (val < 0) {
+    return 0;
+  }
+  if (val > 65535) {
+    return 65535u;
+  }
+  return static_cast<uint16_t>(val);
+}
+
+static void recordImuTelemetry(int32_t error, int32_t threshold) {
+  const uint16_t clampedDelta = clampImuU16(error);
+  const uint8_t  head         = imuHistoryHead;
+
+  imuLatestDelta             = clampedDelta;
+  imuWakeThreshold           = clampImuU16(threshold);
+  imuDeltaHistory[head % 12] = clampedDelta;
+  imuHistoryHead             = static_cast<uint8_t>((head + 1u) % 12u);
+}
+// Order matters for probe order, some Acceleromters do NOT like bad reads; and we have a bunch of
+// overlap of addresses
 void detectAccelerometerVersion() {
 #ifdef ACCEL_MMA
   if (MMA8652FC::detect()) {
@@ -129,7 +158,8 @@ inline void readAccelerometer(int16_t &tx, int16_t &ty, int16_t &tz, Orientation
   } else
 #endif
 #ifdef ACCEL_LIS
-      if (DetectedAccelerometerVersion == AccelType::LIS || DetectedAccelerometerVersion == AccelType::LIS_CLONE) {
+      if (DetectedAccelerometerVersion == AccelType::LIS ||
+          DetectedAccelerometerVersion == AccelType::LIS_CLONE) {
     LIS2DH12::getAxisReadings(tx, ty, tz);
     rotation = LIS2DH12::getOrientation();
   } else
@@ -183,7 +213,8 @@ void startMOVTask(void const *argument __unused) {
   }
 #endif
 
-  osDelay(TICKS_100MS / 5); // This is here as the BMA doesnt start up instantly and can wedge the I2C bus if probed too fast after boot
+  osDelay(TICKS_100MS / 5); // This is here as the BMA doesnt start up instantly and can wedge the
+                            // I2C bus if probed too fast after boot
   detectAccelerometerVersion();
   osDelay(TICKS_100MS / 2); // wait ~50ms for setup of accel to finalise
   lastMovementTime = 0;
@@ -204,7 +235,8 @@ void startMOVTask(void const *argument __unused) {
   uint16_t tripCounter = 0;
 #endif
   for (;;) {
-    int32_t threshold = movementThresholdForSensitivity(getSettingValue(SettingsOptions::Sensitivity));
+    int32_t threshold =
+        movementThresholdForSensitivity(getSettingValue(SettingsOptions::Sensitivity));
     readAccelerometer(tx, ty, tz, rotation);
     if (getSettingValue(SettingsOptions::OrientationMode) == 2) {
       if (rotation != ORIENTATION_FLAT) {
@@ -236,6 +268,7 @@ void startMOVTask(void const *argument __unused) {
 
     // Sum the deltas
     int32_t error = (abs(avgx - tx) + abs(avgy - ty) + abs(avgz - tz));
+    recordImuTelemetry(error, threshold);
     // So now we have averages, we want to look if these are different by more
     // than the threshold
 

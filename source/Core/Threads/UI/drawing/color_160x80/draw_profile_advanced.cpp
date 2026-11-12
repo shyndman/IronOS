@@ -1,59 +1,106 @@
+/*
+ * draw_profile_advanced.cpp — Multi-phase reflow/soldering profile HUD for HS-02.
+ *
+ * Purpose:
+ *   Renders OperatingMode::SolderingProfile in Chaos Telemetry style (live tip vs phase
+ *   target temperature, phase badge, elapsed/goal timer, wattage, and input voltage)
+ *   without relying on legacy 1bpp Display::print() calls.
+ *
+ * Why it exists:
+ *   Satisfies the ui_draw_soldering_profile_advanced() contract from SolderingProfile.cpp
+ *   cleanly on LCD_160x80 after removing the dead monochrome soldering status files.
+ */
+
+#include "HudTelemetry.hpp"
 #include "ui_drawing.hpp"
 
 #ifdef LCD_160x80
-void ui_draw_soldering_profile_advanced(TemperatureType_t tipTemp, TemperatureType_t profileCurrentTargetTemp, uint32_t phaseElapsedSeconds, uint32_t phase, const uint32_t phaseTimeGoal) {
-  // print temperature
-  if (Display::getRotation()) {
-    Display::setCursor(48, 0);
+
+namespace {
+
+using namespace ChaosHud;
+
+char *appendClockMmSs(char *dst, uint32_t totalSeconds) {
+  dst                 = appendUnsigned(dst, totalSeconds / 60u);
+  *dst++              = ':';
+  const uint32_t secs = totalSeconds % 60u;
+  *dst++              = static_cast<char>('0' + (secs / 10u));
+  *dst++              = static_cast<char>('0' + (secs % 10u));
+  *dst                = '\0';
+  return dst;
+}
+
+} // namespace
+
+void drawProfileHeader(TemperatureType_t tipTemp, TemperatureType_t targetTemp, uint32_t phase,
+                       uint16_t totalPhases, uint16_t accent) {
+  char numBuf[12];
+  appendUnsigned(numBuf, tipTemp);
+  const int16_t endX = Display::drawSpaceGroteskRgb(numBuf, 10, 2, 30, Color::kInk);
+  Display::drawSpaceGroteskRgb(tempUnitSuffix(), static_cast<int16_t>(endX + 2), 8, 17,
+                               Color::kMuted);
+
+  char       phaseBadge[14];
+  const bool isPreheat  = (phase == 0u);
+  const bool isCooldown = (phase > totalPhases);
+  if (isPreheat) {
+    appendStr(phaseBadge, "Pre");
+  } else if (isCooldown) {
+    appendStr(phaseBadge, "Cool");
   } else {
-    Display::setCursor(0, 0);
+    char *p = appendStr(phaseBadge, "P");
+    p       = appendUnsigned(p, phase);
+    *p++    = '/';
+    appendUnsigned(p, totalPhases);
   }
+  drawPillRight(152, 5, 19, isCooldown ? Color::kWattsDim : Color::kHeatDim, accent, phaseBadge,
+                accent);
 
-  Display::printNumber(tipTemp, 3, FontStyle::SMALL);
-  Display::print(SmallSymbolSlash, FontStyle::SMALL);
-  Display::printNumber(profileCurrentTargetTemp, 3, FontStyle::SMALL);
+  char  targetBuf[16];
+  char *tp = appendUnsigned(targetBuf, targetTemp);
+  appendStr(tp, HS02_SYM_DEG);
+  drawTextRight(targetBuf, 152, 25, 15, Color::kInk);
+}
 
-  if (getSettingValue(SettingsOptions::TemperatureInF)) {
-    Display::print(SmallSymbolDegF, FontStyle::SMALL);
+void ui_draw_soldering_profile_advanced(TemperatureType_t tipTemp,
+                                        TemperatureType_t profileCurrentTargetTemp,
+                                        uint32_t phaseElapsedSeconds, uint32_t phase,
+                                        const uint32_t phaseTimeGoal) {
+  Display::clearScreenColor();
+
+  const uint16_t totalPhases = getSettingValue(SettingsOptions::ProfilePhases);
+  const bool     isPreheat   = (phase == 0u);
+  const bool     isCooldown  = (phase > totalPhases);
+  const uint16_t accent = isCooldown ? Color::kWatts : (isPreheat ? Color::kVolts : Color::kHeat);
+
+  drawSolidRail(accent);
+  drawProfileHeader(tipTemp, profileCurrentTargetTemp, phase, totalPhases, accent);
+
+  const int32_t tipC    = settingTempToC(tipTemp);
+  const int32_t targetC = settingTempToC(profileCurrentTargetTemp);
+  uint16_t      barColors[12];
+  for (uint8_t i = 0; i < 12u; ++i) {
+    const int32_t thresholdC = 80 + (static_cast<int32_t>(i) * 320) / 12;
+    barColors[i]             = (tipC >= thresholdC) ? thermalZoneColor(i, 12) : Color::kTrack;
+  }
+  const int16_t gateX = mapRangeToBarX(targetC, 80, 400, 10, 140);
+  drawUniformBar(10, 47, 142, 6, 12, barColors, gateX, Color::kInk);
+
+  char wBuf[16];
+  appendTenths(wBuf, readSmoothedWattsX10(), " W");
+  Display::drawSpaceGroteskRgb(wBuf, 10, 58, 15, Color::kWatts);
+
+  if (!isPreheat && !isCooldown) {
+    char  timerBuf[20];
+    char *cp = appendClockMmSs(timerBuf, phaseElapsedSeconds);
+    cp       = appendStr(cp, "/");
+    appendClockMmSs(cp, phaseTimeGoal);
+    drawTextRight(timerBuf, 152, 58, 15, Color::kMuted);
   } else {
-    Display::print(SmallSymbolDegC, FontStyle::SMALL);
-  }
-
-  // print phase
-  if (phase > 0 && phase <= getSettingValue(SettingsOptions::ProfilePhases)) {
-    if (Display::getRotation()) {
-      Display::setCursor(36, 0);
-    } else {
-      Display::setCursor(55, 0);
-    }
-    Display::printNumber(phase, 1, FontStyle::SMALL);
-  }
-
-  // print time progress / preheat / cooldown
-  if (Display::getRotation()) {
-    Display::setCursor(42, 16);
-  } else {
-    Display::setCursor(0, 16);
-  }
-
-  if (phase == 0) {
-    Display::print(translatedString(Tr->ProfilePreheatString), FontStyle::SMALL);
-  } else if (phase > getSettingValue(SettingsOptions::ProfilePhases)) {
-    Display::print(translatedString(Tr->ProfileCooldownString), FontStyle::SMALL);
-  } else {
-    Display::printNumber(phaseElapsedSeconds / 60, 1, FontStyle::SMALL);
-    Display::print(SmallSymbolColon, FontStyle::SMALL);
-    Display::printNumber(phaseElapsedSeconds % 60, 2, FontStyle::SMALL, false);
-
-    Display::print(SmallSymbolSlash, FontStyle::SMALL);
-
-    // blink if we can't keep up with the time goal
-    if (phaseElapsedSeconds < phaseTimeGoal + 2 || (xTaskGetTickCount() / TICKS_SECOND) % 2 == 0) {
-      Display::printNumber(phaseTimeGoal / 60, 1, FontStyle::SMALL);
-      Display::print(SmallSymbolColon, FontStyle::SMALL);
-      Display::printNumber(phaseTimeGoal % 60, 2, FontStyle::SMALL, false);
-    }
+    char vBuf[12];
+    formatLiveVin(vBuf);
+    drawTextRight(vBuf, 152, 58, 15, Color::kVolts);
   }
 }
 
-#endif
+#endif // LCD_160x80

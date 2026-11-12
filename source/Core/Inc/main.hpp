@@ -14,14 +14,18 @@ extern "C" {
 void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName);
 
 // Threads
-void                startGUITask(void const *argument);
-void                startPIDTask(void const *argument);
-void                startMOVTask(void const *argument);
-void                startPOWTask(void const *argument);
+void                         startGUITask(void const *argument);
+void                         startPIDTask(void const *argument);
+void                         startMOVTask(void const *argument);
+void                         startPOWTask(void const *argument);
 extern volatile TaskHandle_t pidTaskNotification;
-extern int32_t      powerSupplyWattageLimit;
-extern uint8_t      accelInit;
+extern int32_t               powerSupplyWattageLimit;
+extern uint8_t               accelInit;
 extern volatile TickType_t   lastMovementTime;
+extern volatile uint16_t     imuLatestDelta;
+extern volatile uint16_t     imuWakeThreshold;
+extern volatile uint16_t     imuDeltaHistory[12];
+extern volatile uint8_t      imuHistoryHead;
 #ifdef __cplusplus
 }
 // Accelerometer type

@@ -1,19 +1,61 @@
-#include "Hs02UiAssets.hpp"
+/*
+ * draw_warning_undervoltage.cpp — Undervoltage lockout (UVLO) alert screen for HS-02.
+ *
+ * Purpose:
+ *   Renders the blocking UVLO fault screen showing live measured input voltage, active
+ *   pack/DC cutoff threshold pill, and heater cutoff state.
+ *
+ * Why it exists:
+ *   Implements ui_draw_warning_undervoltage() for LCD_160x80 using HudTelemetry.
+ */
+
+#include "HudTelemetry.hpp"
 #include "ui_drawing.hpp"
-#include <stdio.h>
+
 #ifdef LCD_160x80
+
+namespace {
+
+void drawCutoffPill() {
+  char           cutoff[16];
+  const uint32_t cells = getSettingValue(SettingsOptions::MinDCVoltageCells);
+  if (cells > 0u) {
+    const uint32_t minCellX10 = getSettingValue(SettingsOptions::MinVoltageCells);
+    ChaosHud::appendStr(cutoff, "<");
+    ChaosHud::appendTenths(cutoff + 1, (2u + cells) * minCellX10, "V");
+  } else {
+    ChaosHud::appendStr(cutoff, "< 6.0V");
+  }
+
+  ChaosHud::drawPill(10, 55, 58, 19, ChaosHud::Color::kRedlineDim, ChaosHud::Color::kNone, cutoff,
+                     ChaosHud::Color::kRedline);
+}
+
+} // namespace
+
 void ui_draw_warning_undervoltage(void) {
-  Display::setColorPalette(Hs02UI::kPaletteMenuPower);
   Display::clearScreenColor();
-  Display::drawRoundedBarColor(0, 0, 3, 80, 1);
-  Display::drawAaBitmapColor(Hs02UI::kIconTriangleAlert.data, Hs02UI::kIconTriangleAlert.width, Hs02UI::kIconTriangleAlert.height, 11, 8, 1);
-  Display::drawSpaceGrotesk("Undervoltage", 35, 7, 15, 0);
-  const uint32_t voltage = getInputVoltageX10(getSettingValue(SettingsOptions::VoltageDiv), 0);
-  char buf[24];
-  snprintf(buf, sizeof(buf), "Input %u.%u V", static_cast<unsigned>(voltage / 10), static_cast<unsigned>(voltage % 10));
-  Display::drawSpaceGrotesk(buf, 11, 46, 19, 1);
+  ChaosHud::drawSolidRail(ChaosHud::Color::kWatts);
+  ChaosHud::drawHazardStripe(ChaosHud::Color::kWatts, ChaosHud::Color::kWattsDim);
+
+  Display::drawAaBitmapRgb(Hs02UI::kIconTriangleAlert.data, Hs02UI::kIconTriangleAlert.width,
+                           Hs02UI::kIconTriangleAlert.height, 10, 8, ChaosHud::Color::kWatts);
+  Display::drawSpaceGroteskRgb("Undervoltage", 32, 7, 15, ChaosHud::Color::kInk);
+
+  char  voltageText[24];
+  char *voltageEnd = ChaosHud::appendStr(voltageText, "Input ");
+  ChaosHud::formatLiveVin(voltageEnd, " V");
+  Display::drawSpaceGroteskRgb(voltageText, 10, 29, 19, ChaosHud::Color::kWatts);
+
+  drawCutoffPill();
+  ChaosHud::drawPill(72, 55, 40, 19, ChaosHud::Color::kWattsDim, ChaosHud::Color::kNone, "CUT",
+                     ChaosHud::Color::kWatts);
+  ChaosHud::drawPill(116, 55, 36, 19, ChaosHud::Color::kCell, ChaosHud::Color::kBorder, "OK",
+                     ChaosHud::Color::kInk);
+
   Display::refresh();
   GUIDelay();
   waitForButtonPress();
 }
-#endif
+
+#endif // LCD_160x80
